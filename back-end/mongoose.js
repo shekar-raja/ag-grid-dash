@@ -17,7 +17,7 @@ mongoose.connect(connectionURI);
 
 /** On Mongo connection successful */
 mongoose.connection.on('open', () => {
-    console.log(`${chalk('✓')} Mongo Connected`)
+    console.log(`${chalk.green('✓')} Mongo Connected`)
     // const ingest = require("./config/ingestData");
     // ingest()
 });
