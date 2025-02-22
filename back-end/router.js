@@ -3,6 +3,7 @@ const router = express.Router();
 
 const Opportunity = require("./models/Opportunity");
 const PolicyHolder = require("./models/PolicyHolder");
+const Policy = require("./models/Policy");
 
 router.get("/policyholders", async (req, res, next) => {
     try {
@@ -13,8 +14,13 @@ router.get("/policyholders", async (req, res, next) => {
     }
 });
 
-router.get("/policies", (req, res, next) => {
-
+router.get("/policies", async (req, res, next) => {
+    try {
+        const policies = await Policy.find();
+        res.status(200).json(policies);
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error fetching policies"});
+    }
 });
 
 router.get("/opportunities", async (req, res, next) => {

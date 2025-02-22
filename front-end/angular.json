@@ -3,11 +3,18 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "ag-grid-dash": {
+    "ag-grid-app": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
-          "style": "scss"
+          "style": "scss",
+          "standalone": false
+        },
+        "@schematics/angular:directive": {
+          "standalone": false
+        },
+        "@schematics/angular:pipe": {
+          "standalone": false
         }
       },
       "root": "",
@@ -17,7 +24,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/ag-grid-dash",
+            "outputPath": "dist/ag-grid-app",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -67,10 +74,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "ag-grid-dash:build:production"
+              "buildTarget": "ag-grid-app:build:production"
             },
             "development": {
-              "buildTarget": "ag-grid-dash:build:development"
+              "buildTarget": "ag-grid-app:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -78,7 +85,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "ag-grid-dash:build"
+            "buildTarget": "ag-grid-app:build"
           }
         },
         "test": {
