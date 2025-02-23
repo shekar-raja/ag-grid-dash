@@ -29,7 +29,7 @@ router.get("/opportunities", async (req, res, next) => {
         const opportunities = await Opportunity.find().sort({ CreatedDate: -1 });
         res.status(200).json(opportunities);
     } catch (error) {
-        res.bstatus(500).json({ success: false, message: "Error fetching opportunities", error: error.message });
+        res.status(500).json({ success: false, message: "Error fetching opportunities", error: error.message });
     }
 });
 
@@ -38,7 +38,7 @@ router.get("/proposals", async (req, res, next) => {
         const proposals = await Proposal.find().sort({ CreatedDate: -1 });
         res.status(200).json(proposals);
     } catch (error) {
-        res.bstatus(500).json({ success: false, message: "Error fetching proposals", error: error.message });
+        res.status(500).json({ success: false, message: "Error fetching proposals", error: error.message });
     }
 });
 
