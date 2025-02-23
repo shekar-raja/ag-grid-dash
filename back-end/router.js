@@ -4,6 +4,7 @@ const router = express.Router();
 const Opportunity = require("./models/Opportunity");
 const PolicyHolder = require("./models/PolicyHolder");
 const Policy = require("./models/Policy");
+const Proposal = require("./models/Proposal");
 
 router.get("/policyholders", async (req, res, next) => {
     try {
@@ -29,6 +30,15 @@ router.get("/opportunities", async (req, res, next) => {
         res.status(200).json(opportunities);
     } catch (error) {
         res.bstatus(500).json({ success: false, message: "Error fetching opportunities", error: error.message });
+    }
+});
+
+router.get("/proposals", async (req, res, next) => {
+    try {
+        const proposals = await Proposal.find().sort({ CreatedDate: -1 });
+        res.status(200).json(proposals);
+    } catch (error) {
+        res.bstatus(500).json({ success: false, message: "Error fetching proposals", error: error.message });
     }
 });
 

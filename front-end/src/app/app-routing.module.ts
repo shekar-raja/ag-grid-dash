@@ -5,8 +5,7 @@ import { PolicyHoldersComponent } from './dashboard/policy-holders/policy-holder
 import { DashboardComponent } from './dashboard/dashboard.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'policyholders', pathMatch: 'full' },
-  { path: 'policyholders', component: PolicyHoldersComponent },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'dashboard', component: DashboardComponent }
 ];
 @NgModule({

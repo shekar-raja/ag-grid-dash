@@ -14,6 +14,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { OpportunitiesComponent } from './dashboard/opportunities/opportunities.component';
 import { PoliciesComponent } from './dashboard/policies/policies.component';
 import { SearchComponent } from './search/search.component';
+import { ProposalsComponent } from './dashboard/proposals/proposals.component';
 
 ModuleRegistry.registerModules([
   AllCommunityModule, // or AllEnterpriseModule
@@ -25,7 +26,8 @@ ModuleRegistry.registerModules([
     DashboardComponent,
     OpportunitiesComponent,
     PoliciesComponent,
-      SearchComponent
+    SearchComponent,
+    ProposalsComponent
    ],
   imports: [
     BrowserModule,
