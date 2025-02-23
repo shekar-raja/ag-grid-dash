@@ -24,4 +24,8 @@ export class SharedService {
     return this._http.get(environment.url + "api/policies");
   }
 
+  getProposals() {
+    return this._http.get(environment.url + "api/proposals")
+  }
+
 }
