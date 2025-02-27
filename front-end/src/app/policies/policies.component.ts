@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SharedService } from '../shared.service';
+import { constants } from '../constants';
 
 @Component({
   selector: 'app-policies',
@@ -8,6 +9,7 @@ import { SharedService } from '../shared.service';
 })
 export class PoliciesComponent implements OnInit {
 
+  theme = constants.tableTheme;
   policies: any[] = [];
   columnDefs = [
     { field: 'PolicyID', headerName: 'ID', sortable: true, filter: true },
