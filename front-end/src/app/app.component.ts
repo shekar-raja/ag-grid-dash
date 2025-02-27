@@ -1,6 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
 import { Router, NavigationEnd } from '@angular/router';
+import { LoaderService } from './services/loader.service';
 
 @Component({
   selector: 'app-root',
@@ -9,10 +10,14 @@ import { Router, NavigationEnd } from '@angular/router';
 })
 export class AppComponent {
   @ViewChild('sidenav') sidenav!: MatSidenav;
+  isLoading$ = this.loaderService.isLoading$;
   pageTitle = 'Dashboard';
   sidenavOpened = true;
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private loaderService: LoaderService
+  ) {
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         this.updateTitleBasedOnRoute(event.urlAfterRedirects);
