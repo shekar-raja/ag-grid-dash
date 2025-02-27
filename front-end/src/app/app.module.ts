@@ -14,8 +14,9 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
-import { SideNavComponent } from './side-nav/side-nav.component';
+import { MatButtonModule } from '@angular/material/button';
 
+import { SideNavComponent } from './side-nav/side-nav.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { OpportunitiesComponent } from './opportunities/opportunities.component';
 import { PoliciesComponent } from './policies/policies.component';
@@ -47,7 +48,8 @@ ModuleRegistry.registerModules([
     MatSidenavModule,
     MatIconModule,
     MatToolbarModule,
-    MatListModule
+    MatListModule,
+    MatButtonModule
   ],
   providers: [
     provideClientHydration(),

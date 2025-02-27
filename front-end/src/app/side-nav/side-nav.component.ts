@@ -1,5 +1,4 @@
-import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
-import { MatSidenav } from '@angular/material/sidenav';
+import { Component, EventEmitter, Output } from '@angular/core';
 
 @Component({
   selector: 'app-side-nav',
@@ -7,13 +6,7 @@ import { MatSidenav } from '@angular/material/sidenav';
   styleUrls: ['./side-nav.component.css']
 })
 export class SideNavComponent {
-  @ViewChild('sidenav') sidenav!: MatSidenav;
   @Output() pageTitleChange = new EventEmitter<string>();
-  sidenavOpened = true;
-
-  toggleSidenav() {
-    this.sidenav.toggle();
-  }
 
   updateTitle(title: string) {
     this.pageTitleChange.emit(title);

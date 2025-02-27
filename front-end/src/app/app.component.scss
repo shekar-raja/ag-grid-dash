@@ -1,17 +1,37 @@
+/* Full-height layout */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Fix Material sidenav container */
 .sidenav-container {
-  height: 100vh;
+  height: 100vh; /* Full viewport height */
   display: flex;
 }
 
+/* Fix the sidebar */
 .sidenav {
   width: 250px;
-  background: black;
+  background: #000;
   color: white;
+  height: 100vh;
 }
 
-.content {
+/* Fix content layout */
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Ensure content does not overlap */
+.content-container {
   padding: 20px;
-  width: 100%;
-  background: white;
-  margin-top: 60px; /* Prevents content from being hidden under the header */
+  flex-grow: 1;
+  overflow-y: auto;
+  background: #f4f4f4;
 }

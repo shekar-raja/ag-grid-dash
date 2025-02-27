@@ -1,16 +1,14 @@
-<mat-sidenav-container class="sidenav-container">
-  
-  <!-- Sidebar -->
-  <mat-sidenav #sidenav mode="side" [(opened)]="sidenavOpened" class="sidenav">
-    <app-side-nav (toggleSidebar)="toggleSidenav()"></app-side-nav>
-  </mat-sidenav>
-
-  <!-- Main Content with Header -->
-  <mat-sidenav-content>
-    <app-header (toggleSidebar)="toggleSidenav()"></app-header>
-    <div class="content">
-      <router-outlet></router-outlet>
-    </div>
-  </mat-sidenav-content>
-
-</mat-sidenav-container>
+<mat-nav-list>
+  <a mat-list-item routerLink="/dashboard" (click)="updateTitle('Dashboard')">
+    <mat-icon>dashboard</mat-icon> Dashboard
+  </a>
+  <a mat-list-item routerLink="/opportunities" (click)="updateTitle('Opportunities')">
+    <mat-icon>business</mat-icon> Opportunities
+  </a>
+  <a mat-list-item routerLink="/policy-holders" (click)="updateTitle('Policy Holders')">
+    <mat-icon>people</mat-icon> Policy Holders
+  </a>
+  <a mat-list-item routerLink="/policies" (click)="updateTitle('Policies')">
+    <mat-icon>description</mat-icon> Policies
+  </a>
+</mat-nav-list>

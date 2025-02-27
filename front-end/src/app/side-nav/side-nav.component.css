@@ -16,7 +16,7 @@
 }
 
 .mat-nav-list a.active {
-  background: #333;
+  background: #222;
   font-weight: bold;
   border-radius: 5px;
 }
