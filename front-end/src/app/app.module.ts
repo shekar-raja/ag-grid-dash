@@ -36,8 +36,8 @@ ModuleRegistry.registerModules([
     PoliciesComponent,
     SearchComponent,
     ProposalsComponent,
-      SideNavComponent,
-      HeaderComponent
+    SideNavComponent,
+    HeaderComponent
    ],
   imports: [
     BrowserModule,

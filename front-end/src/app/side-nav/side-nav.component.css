@@ -1,25 +1,61 @@
+.sidenav-list {
+  padding: 0;
+  margin: 0;
+}
+
+/* Style Menu Title */
+.menu-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  padding: 16px 20px;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
 /* Sidebar Links */
 .mat-list-item {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Adjusted spacing */
   color: white !important;
   font-size: 16px;
   font-weight: 500;
-  transition: background 0.3s ease-in-out;
+  padding: 12px 20px !important; /* More spacing */
+  transition: all 0.3s ease-in-out;
 }
 
-/* Active Sidebar Item (Using Angular's routerLinkActive) */
+/* Remove the Unwanted White Line */
+.mat-list-item:first-child {
+  border-top: none !important;
+}
+
+/* Sidebar Icons */
+.menu-icon {
+  font-size: 22px;
+  color: white !important;
+  min-width: 30px; /* Ensures proper alignment */
+  text-align: center;
+}
+
+/* Sidebar Text */
+.menu-text {
+  flex-grow: 1;
+  color: white;
+  white-space: nowrap; /* Prevents wrapping */
+}
+
+/* Active Sidebar Item */
 .active-link {
   background: rgba(255, 255, 255, 0.3) !important;
   color: white !important;
-  border-left: 4px solid #fff; /* Optional: Left border for active item */
+  border-left: 4px solid #fff;
 }
 
 /* Hover Effect */
 .mat-list-item:hover {
   background: rgba(255, 255, 255, 0.2) !important;
-  color: white !important;
-}
-
-/* Sidebar Icons */
-.mat-icon {
   color: white !important;
 }
