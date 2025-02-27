@@ -1,0 +1,22 @@
+.sidenav-header {
+  padding: 16px;
+  font-size: 20px;
+  text-align: center;
+  background: black;
+  color: white;
+}
+
+.mat-nav-list a {
+  text-decoration: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+}
+
+.mat-nav-list a.active {
+  background: #333;
+  font-weight: bold;
+  border-radius: 5px;
+}

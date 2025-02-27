@@ -1,0 +1,17 @@
+.sidenav-container {
+  height: 100vh;
+  display: flex;
+}
+
+.sidenav {
+  width: 250px;
+  background: black;
+  color: white;
+}
+
+.content {
+  padding: 20px;
+  width: 100%;
+  background: white;
+  margin-top: 60px; /* Prevents content from being hidden under the header */
+}

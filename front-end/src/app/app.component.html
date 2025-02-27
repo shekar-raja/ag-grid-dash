@@ -1,1 +1,5 @@
-<router-outlet></router-outlet> 
+<app-header [pageTitle]="pageTitle" (toggleSidebar)="toggleSidenav()"></app-header>
+
+<div class="main-layout">
+  <app-side-nav (pageTitleChange)="updateTitle($event)"></app-side-nav>
+</div>
