@@ -36,7 +36,7 @@ export class AppComponent {
       case '/opportunities':
         this.pageTitle = 'Opportunities';
         break;
-      case '/policy-holders':
+      case '/policyholders':
         this.pageTitle = 'Policy Holders';
         break;
       case '/policies':

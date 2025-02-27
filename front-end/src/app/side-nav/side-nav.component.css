@@ -1,13 +1,25 @@
+/* Sidebar Links */
 .mat-list-item {
-  color: rgb(255, 255, 255) !important;
+  color: white !important;
   font-size: 16px;
   font-weight: 500;
+  transition: background 0.3s ease-in-out;
 }
 
+/* Active Sidebar Item (Using Angular's routerLinkActive) */
+.active-link {
+  background: rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  border-left: 4px solid #fff; /* Optional: Left border for active item */
+}
+
+/* Hover Effect */
 .mat-list-item:hover {
-  background: #f6f6f6 !important; /* Slightly lighter for hover effect */
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
 }
 
+/* Sidebar Icons */
 .mat-icon {
   color: white !important;
 }

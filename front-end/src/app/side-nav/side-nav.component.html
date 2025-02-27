@@ -1,14 +1,18 @@
 <mat-nav-list>
-  <a mat-list-item routerLink="/dashboard" (click)="updateTitle('Dashboard')">
+  <h1>Menu</h1>
+  <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link">
     <mat-icon>dashboard</mat-icon> Dashboard
   </a>
-  <a mat-list-item routerLink="/opportunities" (click)="updateTitle('Opportunities')">
+
+  <a mat-list-item routerLink="/opportunities" routerLinkActive="active-link">
     <mat-icon>business</mat-icon> Opportunities
   </a>
-  <a mat-list-item routerLink="/policy-holders" (click)="updateTitle('Policy Holders')">
-    <mat-icon>people</mat-icon> Policy Holders
+
+  <a mat-list-item routerLink="/policyholders" routerLinkActive="active-link">
+    <mat-icon>group</mat-icon> Policy Holders
   </a>
-  <a mat-list-item routerLink="/policies" (click)="updateTitle('Policies')">
+
+  <a mat-list-item routerLink="/policies" routerLinkActive="active-link">
     <mat-icon>description</mat-icon> Policies
   </a>
 </mat-nav-list>
