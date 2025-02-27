@@ -1,22 +1,13 @@
-.sidenav-header {
-  padding: 16px;
-  font-size: 20px;
-  text-align: center;
-  background: black;
-  color: white;
+.mat-list-item {
+  color: rgb(255, 255, 255) !important;
+  font-size: 16px;
+  font-weight: 500;
 }
 
-.mat-nav-list a {
-  text-decoration: none;
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 12px;
+.mat-list-item:hover {
+  background: #f6f6f6 !important; /* Slightly lighter for hover effect */
 }
 
-.mat-nav-list a.active {
-  background: #222;
-  font-weight: bold;
-  border-radius: 5px;
+.mat-icon {
+  color: white !important;
 }

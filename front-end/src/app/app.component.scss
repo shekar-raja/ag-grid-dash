@@ -8,16 +8,36 @@ html, body {
 
 /* Fix Material sidenav container */
 .sidenav-container {
-  height: 100vh; /* Full viewport height */
+  height: 100vh;
   display: flex;
 }
 
-/* Fix the sidebar */
+/* Sidebar Styling */
 .sidenav {
   width: 250px;
-  background: #000;
+  background: #3f51b5; /* Dark gray for better contrast */
   color: white;
   height: 100vh;
+  padding-top: 10px;
+}
+
+/* Sidebar Links */
+.mat-list-item {
+  color: #f5f5f5 !important; /* Light gray text for readability */
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Sidebar Active Link */
+.mat-list-item:hover, .mat-list-item:focus {
+  background: #fffefe !important; /* Slightly lighter for hover effect */
+}
+
+/* Sidebar Icons */
+.mat-icon {
+  color: #f5f5f5 !important; /* Ensure icons are visible */
+  margin-right: 10px;
+  font-size: 24px;
 }
 
 /* Fix content layout */
