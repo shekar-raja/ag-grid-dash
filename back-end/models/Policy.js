@@ -7,7 +7,8 @@ const PolicySchema = new mongoose.Schema({
     CoverageAmount: Number,
     Status: String,
     StartDate: String,
-    EndDate: String
+    EndDate: String,
+    embedding: { type: [Number], index: "2dsphere" }
 });
 
 module.exports = mongoose.model("Policy", PolicySchema);

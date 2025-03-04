@@ -6,7 +6,8 @@ const OpportunitySchema = new mongoose.Schema({
     Description: String,
     Amount: Number,
     Status: String,
-    CreatedDate: String
+    CreatedDate: String,
+    embedding: { type: [Number], index: "2dsphere" }
 });
 
 module.exports = mongoose.model("Opportunity", OpportunitySchema);
