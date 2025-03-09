@@ -9,7 +9,6 @@ model_name = "all-mpnet-base-v2"
 
 model = SentenceTransformer(model_name)
 
-
 # Initialize FastAPI
 app = FastAPI()
 
@@ -19,15 +18,13 @@ class TextRequest(BaseModel):
 @app.post("/generate_embedding/")
 async def generate_embedding(data: TextRequest):
     try:
-        print(f"🚀 Generating embedding for: {data.text}")
-
         if not data.text.strip():
             raise HTTPException(status_code=400, detail="❌ ERROR: Text cannot be empty.")
 
         # Generate Embeddings using Open-Source Model
         embedding = model.encode(data.text).tolist()
 
-        print(f"✅ Generated Embedding: {embedding[:5]}...")  # Print first 5 numbers
+        print(f"✅ Generated Embedding: {embedding[:5]}... for text: {data.text}")  # Print first 5 numbers
         return {"embedding": embedding}
 
     except Exception as e:

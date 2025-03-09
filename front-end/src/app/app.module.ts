@@ -17,6 +17,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AgChartsModule } from 'ag-charts-angular';
 import { MatCardModule } from '@angular/material/card';
+import { FormsModule } from '@angular/forms';
+import { HttpLoaderInterceptor } from './interceptors/http-loader.interceptor';
 
 import { SideNavComponent } from './side-nav/side-nav.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
@@ -25,7 +27,6 @@ import { PoliciesComponent } from './policies/policies.component';
 import { SearchComponent } from './search/search.component';
 import { ProposalsComponent } from './proposals/proposals.component';
 import { HeaderComponent } from './header/header.component';
-import { HttpLoaderInterceptor } from './interceptors/http-loader.interceptor';
 
 ModuleRegistry.registerModules([
   AllCommunityModule,
@@ -55,7 +56,8 @@ ModuleRegistry.registerModules([
     MatButtonModule,
     MatProgressSpinnerModule,
     AgChartsModule,
-    MatCardModule
+    MatCardModule,
+    FormsModule
   ],
   providers: [
     provideClientHydration(),

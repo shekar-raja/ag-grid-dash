@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { SharedService } from '../shared.service';
 
 @Component({
   selector: 'app-search',
@@ -6,14 +7,28 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./search.component.css']
 })
 export class SearchComponent implements OnInit {
+  query: string = '';
+  loading: boolean = false;
 
-  constructor() { }
+  @Output() resultsEvent = new EventEmitter<any>();
+
+  constructor(private _sharedService: SharedService) {}
 
   ngOnInit() {
   }
 
-  onSearch(event: any) {
+  onSearch() {
+    if (!this.query.trim()) return;
 
+    this.loading = true;
+    try {
+      this._sharedService.search(this.query).subscribe((response: any) => {
+        this.resultsEvent.emit(response && response.results? response.results : null);
+      })
+    } catch (error) {
+      console.error('Search error:', error);
+    }
+    this.loading = false;
   }
 
 }

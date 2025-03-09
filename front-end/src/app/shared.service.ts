@@ -28,4 +28,11 @@ export class SharedService {
     return this._http.get(environment.url + "api/proposals")
   }
 
+  search(query: String) {
+    let request = {  
+      query: query
+    }
+    return this._http.post(environment.url + "api/search", request);
+  }
+
 }

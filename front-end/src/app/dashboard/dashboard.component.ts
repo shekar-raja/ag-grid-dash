@@ -12,6 +12,7 @@ export class DashboardComponent implements OnInit {
   proposalsChart: any = {};
   policiesChart: any = {};
   claimsChart: any = {};
+  searchResults: any = [];
   
   constructor(
     private _sharedService: SharedService
@@ -145,5 +146,9 @@ export class DashboardComponent implements OnInit {
       date: new Date(date),
       value: values.reduce((sum, v) => sum + v, 0) / values.length
     }));
+  }
+
+  handleSearchResults(results: any) {
+    this.searchResults = results;
   }
 }

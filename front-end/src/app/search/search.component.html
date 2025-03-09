@@ -1,1 +1,12 @@
-<input type="text" placeholder="Search policyholders..." (input)="onSearch($event)" class="search-box">
+<div class="search-container">
+    <input 
+      type="text" 
+      [(ngModel)]="query" 
+      (keyup.enter)="onSearch()" 
+      placeholder="Search Anything..."
+      class="search-input"
+    />
+    <button (click)="onSearch()" [disabled]="loading" class="search-btn">
+      {{ loading ? 'Searching...' : 'Search' }}
+    </button>
+</div>
