@@ -19,9 +19,9 @@ app.use(express.urlencoded({limit: '50mb'}));
 require("./mongoose");
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
-app.use('/', express.static('../front-end/dist/ag-grid-dash/browser'));
-app.get('*', (req, res) => {
-    res.sendFile(path.resolve('../front-end/dist/ag-grid-dash/browser/index.html'), { req });
-});
+// app.use('/', express.static('../front-end/dist/ag-grid-dash/browser'));
+// app.get('*', (req, res) => {
+//     res.sendFile(path.resolve('../front-end/dist/ag-grid-dash/browser/index.html'), { req });
+// });
 
 module.exports = app;

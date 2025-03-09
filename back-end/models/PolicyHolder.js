@@ -9,7 +9,8 @@ const PolicyHolderSchema = new mongoose.Schema({
     Address: String,
     RiskScore: Number,
     TotalPremiumPaid: Number,
-    ExistingClaims: Number
+    ExistingClaims: Number,
+    embedding: { type: [Number], index: "2dsphere" }
 });
 
 module.exports = mongoose.model("PolicyHolder", PolicyHolderSchema);

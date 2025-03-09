@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SharedService } from '../shared.service';
+import type { ColDef } from "ag-grid-community";
+import { constants } from '../constants';
 
 @Component({
   selector: 'app-opportunities',
@@ -8,6 +10,7 @@ import { SharedService } from '../shared.service';
 })
 export class OpportunitiesComponent implements OnInit {
 
+  theme = constants.tableTheme;
   opportunities: any[] = [];
   columnDefs = [
     { field: 'OpportunityID', headerName: 'ID', sortable: true, filter: true },
@@ -17,6 +20,13 @@ export class OpportunitiesComponent implements OnInit {
     { field: 'Status', headerName: 'Status', sortable: true, filter: true },
     { field: 'CreatedDate', headerName: 'CreatedDate', sortable: true, filter: true }
   ];
+
+  defaultColDef: ColDef = {
+    editable: true,
+    flex: 1,
+    minWidth: 100,
+    filter: true,
+  };
 
   constructor(private _sharedService: SharedService) { }
 

@@ -1,8 +1,12 @@
-<ag-grid-angular
-  style="width: 100%; height: 500px;"
-  class="ag-theme-alpine"
-  [rowData]="policyHolders"
-  [columnDefs]="columnDefs"
-  rowSelection="multiple"
-  [pagination]="true">
-</ag-grid-angular>
+<ng-container *ngIf="policyHolders.length">
+  <ag-grid-angular
+    style="width: 100%; height: 500px;"
+    class="ag-theme-alpine"
+    [rowData]="policyHolders"
+    [columnDefs]="columnDefs"
+    rowSelection="multiple"
+    [pagination]="true"
+    [sideBar]="true"
+  [theme]="theme">
+  </ag-grid-angular>
+</ng-container>

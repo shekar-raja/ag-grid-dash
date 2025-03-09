@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SharedService } from '../shared.service';
+import { constants } from '../constants';
 
 @Component({
   selector: 'app-proposals',
@@ -8,6 +9,7 @@ import { SharedService } from '../shared.service';
 })
 export class ProposalsComponent implements OnInit {
 
+  theme = constants.tableTheme;
   proposals: any[] = [];
   columnDefs = [
     { field: 'ProposalID', headerName: 'ID', sortable: true, filter: true },

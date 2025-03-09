@@ -1,18 +1,23 @@
-<mat-nav-list>
-  <h1>Menu</h1>
+<mat-nav-list class="sidenav-list">
+  <h1 class="menu-title">Menu</h1>
+
   <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link">
-    <mat-icon>dashboard</mat-icon> Dashboard
+    <mat-icon class="menu-icon">dashboard</mat-icon>
+    <span class="menu-text">Dashboard</span>
   </a>
 
   <a mat-list-item routerLink="/opportunities" routerLinkActive="active-link">
-    <mat-icon>business</mat-icon> Opportunities
+    <mat-icon class="menu-icon">business</mat-icon>
+    <span class="menu-text">Opportunities</span>
   </a>
 
   <a mat-list-item routerLink="/policyholders" routerLinkActive="active-link">
-    <mat-icon>group</mat-icon> Policy Holders
+    <mat-icon class="menu-icon">group</mat-icon>
+    <span class="menu-text">Policy Holders</span>
   </a>
 
   <a mat-list-item routerLink="/policies" routerLinkActive="active-link">
-    <mat-icon>description</mat-icon> Policies
+    <mat-icon class="menu-icon">description</mat-icon>
+    <span class="menu-text">Policies</span>
   </a>
 </mat-nav-list>

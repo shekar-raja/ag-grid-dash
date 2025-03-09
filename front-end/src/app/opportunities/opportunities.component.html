@@ -1,8 +1,21 @@
-<ag-grid-angular
-  style="width: 100%; height: 500px;"
-  class="ag-theme-alpine"
-  [rowData]="opportunities"
-  [columnDefs]="columnDefs"
-  rowSelection="multiple"
-  [pagination]="true">
-</ag-grid-angular>
+<mat-tab-group>
+  <ng-container *ngIf="opportunities.length">
+    <mat-tab label="Opportunities">
+      <ag-grid-angular
+        style="width: 100%; height: 500px;"
+        class="ag-theme-alpine"
+        [rowData]="opportunities"
+        [columnDefs]="columnDefs"
+        rowSelection="multiple"
+        [pagination]="true"
+        [sideBar]="true"
+        [theme]="theme"
+        [defaultColDef]="defaultColDef">
+      </ag-grid-angular>
+    </mat-tab>
+
+    <mat-tab label="Proposals">
+      <app-proposals></app-proposals>
+    </mat-tab>
+  </ng-container>
+</mat-tab-group>

@@ -1,0 +1,117 @@
+.dashboard-container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Metrics Row */
+.metrics-row {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.metric-card {
+  flex: 1;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Progress Bar */
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+
+/* Charts Row */
+.charts-row {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.chart-card {
+  flex: 1;
+  min-width: 400px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Hide Charts When Searching */
+.dashboard-charts.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Search Results Animation */
+.search-results {
+  animation: fadeIn 0.4s ease-in-out;
+  margin-top: 20px;
+}
+
+/* Tables */
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.results-table th,
+.results-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.results-table th {
+  background: #007bff;
+  color: white;
+}
+
+.results-table tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.results-table tbody tr:hover {
+  background: #f1f1f1;
+  cursor: pointer;
+}
+
+/* Fade-in Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .metrics-row,
+  .charts-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .chart-card,
+  .metric-card {
+    width: 100%;
+    max-width: 600px;
+  }
+}
