@@ -1,0 +1,39 @@
+name: Deploy Node.js App to Azure
+
+on:
+  push:
+    branches:
+      - main  # Change this if your branch is different
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the application
+        run: npm run build  # Skip if your app doesn't need a build step
+
+      - name: Archive production artifacts
+        run: |
+          mkdir -p deployment
+          cp -r * deployment/
+          cp -r .next deployment/  # Only for Next.js apps
+          zip -r deployment.zip deployment/
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "ag-grid-backend"  # Replace with your Azure Web App name
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: deployment.zip
