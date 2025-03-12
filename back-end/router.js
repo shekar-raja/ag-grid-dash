@@ -29,7 +29,7 @@ router.get("/policies", async (req, res, next) => {
 
 router.get("/opportunities", async (req, res, next) => {
     try {
-        const opportunities = await Opportunity.find().sort({ CreatedDate: -1 });
+        const opportunities = await Opportunity.find();
         res.status(200).json(opportunities);
     } catch (error) {
         res.status(500).json({ success: false, message: "Error fetching opportunities", error: error.message });
@@ -50,16 +50,16 @@ router.post("/search", async (req, res) => {
         const collections = {
             opportunities: {
                 collection: Opportunity,
-                index: "opportunities_index"
+                index: "opportunity_index"
             },
-            proposals: {
-                collection: Proposal,
-                index: "proposals_index"
-            },
-            policyholders: {
-                collection: PolicyHolder,
-                index: "policy_holders_index"
-            }
+            // proposals: {
+            //     collection: Proposal,
+            //     index: "proposals_index"
+            // },
+            // policyholders: {
+            //     collection: PolicyHolder,
+            //     index: "policy_holders_index"
+            // }
             // policies: Policy
         }
         const { query } = req.body;
@@ -88,9 +88,9 @@ router.post("/search", async (req, res) => {
 router.get("/generate-embeddings", async (req, res) => {
     try {
         await embeddings.functions.generateAndStoreEmbeddings(Opportunity);
-        await embeddings.functions.generateAndStoreEmbeddings(PolicyHolder);
-        await embeddings.functions.generateAndStoreEmbeddings(Policy);
-        await embeddings.functions.generateAndStoreEmbeddings(Proposal);
+        // await embeddings.functions.generateAndStoreEmbeddings(PolicyHolder);
+        // await embeddings.functions.generateAndStoreEmbeddings(Policy);
+        // await embeddings.functions.generateAndStoreEmbeddings(Proposal);
         
         res.json({ message: "Embeddings created for all datasets!" });
     } catch (error) {
