@@ -1,13 +1,12 @@
 import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer
+import torch
+from colbert.infra import ColBERTConfig
+from colbert.modeling.checkpoint import Checkpoint
 
-# Load Open-Source Embedding Model
-# model_name = "all-MiniLM-L6-v2"
-model_name = "all-mpnet-base-v2"
-
-model = SentenceTransformer(model_name)
+# Load Colbert V2 Embedding Model
+ckpt = Checkpoint("jinaai/jina-colbert-v2", colbert_config=ColBERTConfig())
 
 # Initialize FastAPI
 app = FastAPI()
@@ -15,14 +14,19 @@ app = FastAPI()
 class TextRequest(BaseModel):
     text: str
 
-@app.post("/generate_embedding/")
+@app.post("/generate-embedding/")
 async def generate_embedding(data: TextRequest):
     try:
         if not data.text.strip():
             raise HTTPException(status_code=400, detail="❌ ERROR: Text cannot be empty.")
 
-        # Generate Embeddings using Open-Source Model
-        embedding = model.encode(data.text).tolist()
+        # Generate Embeddings
+        docs = [data.text]
+
+        with torch.no_grad():
+            query_vectors = ckpt.queryFromText(docs, bsize=1)
+        
+        embedding = query_vectors[0].tolist()
 
         print(f"✅ Generated Embedding: {embedding[:5]}... for text: {data.text}")  # Print first 5 numbers
         return {"embedding": embedding}
