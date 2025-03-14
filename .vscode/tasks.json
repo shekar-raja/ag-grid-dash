@@ -37,6 +37,11 @@
           }
         }
       }
+    },
+    {
+      "label": "kill-port",
+      "type": "shell",
+      "command": "kill -9 $(lsof -ti :3000) 2>/dev/null || true"
     }
   ]
 }

@@ -8,10 +8,7 @@
       "name": "Launch Program",
       "program": "${workspaceFolder}/back-end/app.js",
       "outputCapture": "std",
-      // "env": {
-      //     "server": "client"
-      // }
-  }
-
+      // "preLaunchTask": "kill-port"
+    }
   ]
 }

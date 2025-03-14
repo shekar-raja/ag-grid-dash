@@ -11,7 +11,7 @@ const OpportunitySchema = new mongoose.Schema({
     followUp: String,
     source: String,
     comments: String,
-    embedding: { type: [Number], index: "2dsphere" }
+    embedding: [[Number]]
 });
 
 module.exports = mongoose.model("Opportunity", OpportunitySchema);

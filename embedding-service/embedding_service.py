@@ -1,9 +1,9 @@
-import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import torch
 from colbert.infra import ColBERTConfig
 from colbert.modeling.checkpoint import Checkpoint
+from typing import List
 
 # Load Colbert V2 Embedding Model
 ckpt = Checkpoint("jinaai/jina-colbert-v2", colbert_config=ColBERTConfig())
@@ -11,25 +11,34 @@ ckpt = Checkpoint("jinaai/jina-colbert-v2", colbert_config=ColBERTConfig())
 # Initialize FastAPI
 app = FastAPI()
 
-class TextRequest(BaseModel):
-    text: str
+class TextItem(BaseModel):
+    _id: str  # Ensure _id is received as a string
+    text: str # Ensure text is a string
+
+class TextBatchRequest(BaseModel):
+    texts: List[TextItem]  # Expecting a list of TextItem objects
 
 @app.post("/generate-embedding/")
-async def generate_embedding(data: TextRequest):
+async def generate_embedding(data: TextBatchRequest):
     try:
-        if not data.text.strip():
-            raise HTTPException(status_code=400, detail="❌ ERROR: Text cannot be empty.")
+        global ckpt
 
-        # Generate Embeddings
-        docs = [data.text]
+        if not data.texts:
+            raise HTTPException(status_code=400, detail="❌ ERROR: Texts cannot be empty.")
+
+        # Extract texts from the request
+        texts = [item.text for item in data.texts if item.text.strip()]
+
+        if not texts:
+            raise HTTPException(status_code=400, detail="❌ ERROR: No valid texts provided.")
 
         with torch.no_grad():
-            query_vectors = ckpt.queryFromText(docs, bsize=1)
-        
-        embedding = query_vectors[0].tolist()
+            query_vectors = ckpt.queryFromText(texts, bsize=len(texts))  # Batch processing
 
-        print(f"✅ Generated Embedding: {embedding[:5]}... for text: {data.text}")  # Print first 5 numbers
-        return {"embedding": embedding}
+        embeddings = [vector.tolist() for vector in query_vectors]
+
+        # Return embeddings mapped to corresponding document _id
+        return {"embeddings": embeddings}
 
     except Exception as e:
         print(f"❌ ERROR: {e}")
