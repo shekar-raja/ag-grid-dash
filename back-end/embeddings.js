@@ -61,7 +61,7 @@ embeddings.functions = {
                         "queryVector": queryEmbedding,
                         "path": "embedding",
                         "numCandidates": 100,
-                        "limit": 5,
+                        "limit": 50,
                         "index": index,
                     }
                 },
