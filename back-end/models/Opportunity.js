@@ -1,12 +1,16 @@
 const mongoose = require("mongoose");
 
 const OpportunitySchema = new mongoose.Schema({
-    OpportunityID: String,
-    ClientName: String,
-    Description: String,
-    Amount: Number,
-    Status: String,
-    CreatedDate: String,
+    leadID: String,
+    leadName: String,
+    status: String,
+    phone: Number,
+    email: String,
+    priority: String,
+    lastInteraction: String,
+    followUp: String,
+    source: String,
+    comments: String,
     embedding: { type: [Number], index: "2dsphere" }
 });
 

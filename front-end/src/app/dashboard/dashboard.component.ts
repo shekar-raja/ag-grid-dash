@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SharedService } from '../shared.service';
+import type { ColDef } from "ag-grid-community";
+import { constants } from '../constants';
 
 @Component({
   selector: 'app-dashboard',
@@ -13,6 +15,28 @@ export class DashboardComponent implements OnInit {
   policiesChart: any = {};
   claimsChart: any = {};
   searchResults: any = [];
+
+  theme = constants.tableTheme;
+  opportunities: any[] = [];
+  columnDefs = [
+    { field: 'Lead ID', headerName: 'Lead ID', sortable: true, filter: true },
+    { field: 'Lead Name', headerName: 'Lead Name', sortable: true, filter: true },
+    { field: 'Status', headerName: 'Status', sortable: true, filter: true },
+    // { field: 'Phone No.', headerName: 'Phone No.', sortable: true, filter: true },
+    { field: 'Email', headerName: 'Email', sortable: true, filter: true },
+    { field: 'Priority', headerName: 'Priority', sortable: true, filter: true },
+    { field: 'Last interaction', headerName: 'Last Interaction', sortable: true, filter: true },
+    { field: 'Next Follow up', headerName: 'Next Follow Up', sortable: true, filter: true },
+    { field: 'Source', headerName: 'Source', sortable: true, filter: true },
+    { field: 'Comments', headerName: 'Comments', sortable: true, filter: true }
+  ];
+
+  defaultColDef: ColDef = {
+    editable: true,
+    flex: 1,
+    minWidth: 100,
+    filter: true,
+  };
   
   constructor(
     private _sharedService: SharedService
@@ -23,25 +47,25 @@ export class DashboardComponent implements OnInit {
   }
 
   loadCharts() {
-    this._sharedService.getOpportunities().subscribe((response: any) => {
-      this.opportunitiesChart = {
-        title: { text: 'Opportunities Over Time' },
-        data: this.aggregateByMonth(response, 'CreatedDate', 'Amount'),
-        series: [{ type: 'line', xKey: 'date', yKey: 'value', yName: 'Amount' }],
-        axes: [
-          {
-            type: 'time',
-            position: 'bottom',
-            label: { format: '%b %Y', rotation: 45 }
-          },
-          {
-            type: 'number',
-            position: 'left',
-            label: { formatter: (params: any) => `£${params.value.toLocaleString()}` }
-          }
-        ]
-      };
-    });
+    // this._sharedService.getOpportunities().subscribe((response: any) => {
+    //   this.opportunitiesChart = {
+    //     title: { text: 'Opportunities Over Time' },
+    //     data: this.aggregateByMonth(response, 'CreatedDate', 'Amount'),
+    //     series: [{ type: 'line', xKey: 'date', yKey: 'value', yName: 'Amount' }],
+    //     axes: [
+    //       {
+    //         type: 'time',
+    //         position: 'bottom',
+    //         label: { format: '%b %Y', rotation: 45 }
+    //       },
+    //       {
+    //         type: 'number',
+    //         position: 'left',
+    //         label: { formatter: (params: any) => `£${params.value.toLocaleString()}` }
+    //       }
+    //     ]
+    //   };
+    // });
 
     this._sharedService.getProposals().subscribe((response: any) => {
       const statusCounts = this.countStatus(response, 'Status');
