@@ -15,17 +15,15 @@ jobs:
       - name: Setup Node.js version
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'  # Use a stable Node.js version
+          node-version: '23.x'  # Use a stable Node.js version
 
       - name: Install Dependencies
         run: npm install
-
-      - name: Build Project (if needed)
-        run: npm run build  # Only if your app requires a build step
+        working-directory: ./backend
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
           app-name: ag-grid-backend
           publish-profile: ${{ secrets.AZUREWEBAPPPUBLISHPROFILE }}
-          package: './backend'
+          package: ./backend
