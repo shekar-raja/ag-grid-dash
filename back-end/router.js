@@ -9,6 +9,8 @@ const Proposal = require("./models/Proposal");
 const embeddings = require("./embeddings");
 const config = require("./config/values");
 
+router.get("/")
+
 router.get("/policyholders", async (req, res, next) => {
     try {
         const policyholders = await PolicyHolder.find()

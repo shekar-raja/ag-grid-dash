@@ -16,8 +16,12 @@ app.use("/api", router);
 app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({limit: '50mb'}));
 
-require("./mongoose");
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// require("./mongoose");
+require("./db");
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`)
+    // require("./config/ingestData");
+});
 
 app.use('/', express.static('./front-end/dist/ag-grid-app/browser'));
 app.get('*', (req, res) => {
