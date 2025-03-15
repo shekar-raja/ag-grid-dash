@@ -9,6 +9,8 @@ const Proposal = require("./models/Proposal");
 const embeddings = require("./embeddings");
 const config = require("./config/values");
 
+const DB = require("./db");
+
 router.get("/")
 
 router.get("/policyholders", async (req, res, next) => {
@@ -30,18 +32,34 @@ router.get("/policies", async (req, res, next) => {
 });
 
 router.get("/opportunities", async (req, res, next) => {
+    // try {
+    //     const opportunities = await Opportunity.find();
+    //     res.status(200).json(opportunities);
+    // } catch (error) {
+    //     res.status(500).json({ success: false, message: "Error fetching opportunities", error: error.message });
+    // }
     try {
-        const opportunities = await Opportunity.find();
-        res.status(200).json(opportunities);
+        const query = `SELECT * FROM opportunity ORDER BY id ASC;`;
+        const { rows } = await DB.query(query);
+
+        res.status(200).json(rows);
     } catch (error) {
         res.status(500).json({ success: false, message: "Error fetching opportunities", error: error.message });
     }
 });
 
 router.get("/proposals", async (req, res, next) => {
+    // try {
+    //     const proposals = await Proposal.find().sort({ CreatedDate: -1 });
+    //     res.status(200).json(proposals);
+    // } catch (error) {
+    //     res.status(500).json({ success: false, message: "Error fetching proposals", error: error.message });
+    // }
     try {
-        const proposals = await Proposal.find().sort({ CreatedDate: -1 });
-        res.status(200).json(proposals);
+        const query = `SELECT * FROM proposal ORDER BY id ASC;`;
+        const { rows } = await DB.query(query);
+
+        res.status(200).json(rows);
     } catch (error) {
         res.status(500).json({ success: false, message: "Error fetching proposals", error: error.message });
     }

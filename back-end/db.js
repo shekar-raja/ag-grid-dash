@@ -14,6 +14,8 @@ const DB = new Client({
 DB.connect()
     .then(() => {
         console.log(`✅ Postgres DB Connected`);
+        console.log(`📌 Using Database: ${constants.values.POSTGRESQL_DB}`);
+        // require("./config/ingestData"); 
     })
     .catch((error) => {
         console.error(`❌ Postgres DB Connection Error:", ${error}`);

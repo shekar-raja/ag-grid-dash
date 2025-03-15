@@ -13,16 +13,16 @@ export class OpportunitiesComponent implements OnInit {
   theme = constants.tableTheme;
   opportunities: any[] = [];
   columnDefs = [
-    { field: 'Lead ID', headerName: 'Lead ID', sortable: true, filter: true },
-    { field: 'Lead Name', headerName: 'Lead Name', sortable: true, filter: true },
-    { field: 'Status', headerName: 'Status', sortable: true, filter: true },
-    // { field: 'Phone No.', headerName: 'Phone No.', sortable: true, filter: true },
-    { field: 'Email', headerName: 'Email', sortable: true, filter: true },
-    { field: 'Priority', headerName: 'Priority', sortable: true, filter: true },
-    { field: 'Last Interaction', headerName: 'Last Interaction', sortable: true, filter: true },
-    { field: 'Next Follow up', headerName: 'Next Follow Up', sortable: true, filter: true },
-    { field: 'Source', headerName: 'Source', sortable: true, filter: true },
-    { field: 'Comments', headerName: 'Comments', sortable: true, filter: true }
+    { field: 'leadId', headerName: 'Lead ID', sortable: true, filter: true },
+    { field: 'leadName', headerName: 'Lead Name', sortable: true, filter: true },
+    { field: 'status', headerName: 'Status', sortable: true, filter: true },
+    { field: 'phone', headerName: 'Phone No.', sortable: true, filter: true },
+    { field: 'email', headerName: 'Email', sortable: true, filter: true },
+    { field: 'priority', headerName: 'Priority', sortable: true, filter: true },
+    { field: 'lastInteraction', headerName: 'Last Interaction', sortable: true, filter: true },
+    { field: 'followUp', headerName: 'Next Follow Up', sortable: true, filter: true },
+    { field: 'source', headerName: 'Source', sortable: true, filter: true },
+    { field: 'comments', headerName: 'Comments', sortable: true, filter: true }
   ];
 
   defaultColDef: ColDef = {

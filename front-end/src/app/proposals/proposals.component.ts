@@ -12,12 +12,12 @@ export class ProposalsComponent implements OnInit {
   theme = constants.tableTheme;
   proposals: any[] = [];
   columnDefs = [
-    { field: 'ProposalID', headerName: 'ID', sortable: true, filter: true },
-    { field: 'ClientName', headerName: 'Client Name', sortable: true, filter: true },
-    { field: 'Description', headerName: 'Description', sortable: true, filter: true },
-    { field: 'PremiumAmount', headerName: 'Premium Amount', sortable: true, filter: true },
-    { field: 'Status', headerName: 'Status', sortable: true, filter: true },
-    { field: 'ProposalDate', headerName: 'Proposal Date', sortable: true, filter: true }
+    { field: 'proposalId', headerName: 'ID', sortable: true, filter: true },
+    { field: 'clientName', headerName: 'Client Name', sortable: true, filter: true },
+    { field: 'description', headerName: 'Description', sortable: true, filter: true },
+    { field: 'premiumAmount', headerName: 'Premium Amount', sortable: true, filter: true },
+    { field: 'status', headerName: 'Status', sortable: true, filter: true },
+    { field: 'proposalDate', headerName: 'Proposal Date', sortable: true, filter: true }
   ];
 
   constructor(

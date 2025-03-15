@@ -43,55 +43,51 @@ const constants = require("../config/values")
 
 async function importData() {
     try {
-        console.log("🚀 Starting Data Import...");
+        console.log("Starting Data Import...");
 
         // Load JSON Data
-        const filePath = path.join(__dirname, "../data", "opportunities-new.json");
+        const filePath = path.join(__dirname, "../data", "proposals.json");
         if (!fs.existsSync(filePath)) {
-            console.log("❌ JSON file not found.");
+            console.log("JSON file not found.");
             return;
         }
 
-        const opportunities = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+        const proposals = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
-        if (!opportunities.length) {
-            console.log("⚠ No data found in JSON file.");
+        if (!proposals.length) {
+            console.log("No data found in JSON file.");
             return;
         }
 
-        console.log(`📂 Found ${opportunities.length} records. Processing...`);
+        console.log(`📂 Found ${proposals.length} records. Processing...`);
 
         // **Chunk data to avoid exceeding query limits**
         const chunkSize = 1000; // PostgreSQL can handle ~1000 rows at once
         await DB.query("BEGIN");
 
-        for (let i = 0; i < opportunities.length; i += chunkSize) {
-            const chunk = opportunities.slice(i, i + chunkSize);
+        for (let i = 0; i < proposals.length; i += chunkSize) {
+            const chunk = proposals.slice(i, i + chunkSize);
 
             // **Prepare Bulk Insert**
             const values = [];
             const placeholders = chunk
-                .map((_, i) => `($${i * 10 + 1}, $${i * 10 + 2}, $${i * 10 + 3}, $${i * 10 + 4}, $${i * 10 + 5}, $${i * 10 + 6}, $${i * 10 + 7}, $${i * 10 + 8}, $${i * 10 + 9}, $${i * 10 + 10})`)
+                .map((_, i) => `($${i * 6 + 1}, $${i * 6 + 2}, $${i * 6 + 3}, $${i * 6 + 4}, $${i * 6 + 5}, $${i * 6 + 6})`)
                 .join(", ");
 
-            chunk.forEach(({ leadId, leadName, phone, email, status, priority, lastInteraction, followUp, source, comments }) => {
+            chunk.forEach(({ proposalId, clientName, description, premiumAmount, status, proposalDate }) => {
                 values.push(
-                    leadId || null,
-                    leadName || null,
-                    phone || null,
-                    email || null,
+                    proposalId || null,
+                    clientName || null,
+                    description || null,
+                    premiumAmount || null,
                     status || null,
-                    priority || null,
-                    lastInteraction || null,
-                    followUp ? new Date(followUp) : null, // Ensure `followUp` is a DATE
-                    source || null,
-                    comments || null
+                    proposalDate ? new Date(proposalDate) : null,
                 );
             });
 
             // ✅ Use **lowercase column names** to match PostgreSQL schema
             const query = `
-                INSERT INTO opportunity (leadid, leadname, phone, email, status, priority, lastinteraction, followup, source, comments)
+                INSERT INTO proposal ("proposalId", "clientName", "description", "premiumAmount", "status", "proposalDate")
                 VALUES ${placeholders};
             `;
 
@@ -100,12 +96,12 @@ async function importData() {
         }
 
         await DB.query("COMMIT");
-        console.log(`🎉 All ${opportunities.length} opportunities imported into PostgreSQL!`);
+        console.log(`All ${proposals.length} proposals imported into PostgreSQL!`);
     } catch (err) {
         console.error("❌ Error Importing Data:", err);
     } finally {
         await DB.end();
-        console.log("🔄 Database connection closed.");
+        console.log("Database connection closed.");
     }
 }
 
@@ -117,7 +113,7 @@ async function createTable() {
         const createTableQuery = `
             CREATE TABLE IF NOT EXISTS opportunity (
                 id SERIAL PRIMARY KEY,
-                "leadId" TEXT,  
+                "leadId" TEXT,  ;
                 "leadName" TEXT,
                 "phone" TEXT,
                 "email" TEXT,
