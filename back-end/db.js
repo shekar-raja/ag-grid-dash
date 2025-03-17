@@ -1,7 +1,7 @@
 const { Client } = require("pg");
-const chalk = new (require("chalk").Chalk);
 
 const constants = require("./config/values");
+const { logger } = require("./config/logger");
 
 const DB = new Client({
     host: constants.values.POSTGRESQL_URL,
@@ -13,12 +13,12 @@ const DB = new Client({
 
 DB.connect()
     .then(() => {
-        console.log(`✅ Postgres DB Connected`);
-        console.log(`📌 Using Database: ${constants.values.POSTGRESQL_DB}`);
+        logger.info(`✅ Postgres DB Connected`);
+        logger.info(`📌 Using Database: ${constants.values.POSTGRESQL_DB}`);
         // require("./config/ingestData"); 
     })
     .catch((error) => {
-        console.error(`❌ Postgres DB Connection Error:", ${error}`);
+        logger.error(`❌ Postgres DB Connection Error:", ${error}`);
     });
 
 module.exports = DB;

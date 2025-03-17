@@ -1,50 +1,57 @@
 const axios = require("axios");
-const blueBird = require("bluebird");
 
 const config = require("./config/values");
+const DB = require("./db");
+const { logger } = require("./config/logger");
 
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 500;
 
 embeddings = () => { };
 
 embeddings.functions = {
-    generateAndStoreEmbeddings: async (collection) => {
+    generateAndStoreEmbeddings: async (table) => {
         try {
-            // Fetch all documents without embeddings
-            const documents = await collection.find({ embedding: { $exists: true } }).limit(10);
+            logger.info("🚀 Fetching records from PostgreSQL where embeddings do not exist...");
     
-            if (documents.length === 0) {
-                console.log(`✅ No new documents found without embeddings.`);
+            // Count total records that need embeddings
+            const countResult = await DB.query(`
+                SELECT COUNT(*) FROM opportunity WHERE embedding IS NULL;
+            `);
+            const totalRecords = parseInt(countResult.rows[0].count, 10);
+    
+            if (totalRecords === 0) {
+                logger.info(`✅ No new records found without embeddings.`);
                 return true;
             }
     
-            console.log(`Found ${documents.length} documents to process.`);
+            logger.info(`📂 Found ${totalRecords} records. Processing in batches of ${BATCH_SIZE}...`);
     
-            // Split documents into batches of BATCH_SIZE
-            const documentChunks = [];
-            for (let i = 0; i < documents.length; i += BATCH_SIZE) {
-                documentChunks.push(documents.slice(i, i + BATCH_SIZE));
-            }
+            let processed = 0;
     
-            console.log(`Processing ${documentChunks.length} batches of ${BATCH_SIZE} documents each.`);
+            while (processed < totalRecords) {
+                // Fetch the next batch of records
+                const result = await DB.query(`
+                    SELECT * FROM opportunity
+                    WHERE embedding IS NULL
+                    LIMIT $1 OFFSET $2;
+                `, [BATCH_SIZE, processed]);
     
-            for (const [index, batch] of documentChunks.entries()) {
-                console.log(`Processing batch ${index + 1} of ${documentChunks.length}...`);
+                const documents = result.rows;
+                if (documents.length === 0) break; // No more documents to process
     
-                const textData = batch.map((doc) => ({
-                    _id: doc._id.toString(), // Convert ObjectId to string
-                    text: Object.entries(doc["_doc"])
-                        .filter(([key]) => key !== "_id" && key !== "__v" && key !== "embedding") // Ignore metadata
+                logger.info(`🔹 Processing batch ${processed / BATCH_SIZE + 1} (${documents.length} records)...`);
+    
+                // Prepare text data for embedding generation
+                const textData = documents.map((doc) => ({
+                    id: doc.id, // Use PostgreSQL `id` as the identifier
+                    text: Object.entries(doc)
+                        .filter(([key]) => key !== "id" && key !== "embedding") // Ignore metadata
                         .map(([key, value]) => `${key}: ${value}`)
                         .join(", ")
                         .trim(),
                 }));
     
-                if (textData.length === 0) continue; // Skip empty batch
-    
-                // Log request data
-                console.log(`Sending batch ${index + 1} to Python API`);
-                console.log(`Request Payload (First 2 examples):`, textData.slice(0, 2));
+                logger.info(`📤 Sending ${textData.length} records for embedding generation...`);
     
                 try {
                     // Send batch request to Python API
@@ -56,36 +63,44 @@ embeddings.functions = {
     
                     const embeddings = response.data.embeddings; // Expecting an array of embeddings
     
-                    // Log API response
-                    console.log(`📥 Received response for batch ${index + 1}`);
-                    console.log(`🔹 Received ${embeddings?.length || 0} embeddings for ${textData.length} texts.`);
+                    logger.info(`📥 Received ${embeddings?.length || 0} embeddings for ${textData.length} texts.`);
     
                     if (!embeddings || embeddings.length !== textData.length) {
-                        console.error(`Batch ${index + 1} failed: Mismatch in embeddings received.`);
-                        continue;
+                        console.error("❌ Mismatch in embeddings received.");
+                        return false;
                     }
     
-                    // Prepare bulk update operations
-                    const bulkUpdates = textData.map((item, idx) => ({
-                        updateOne: {
-                            filter: { "_id": item._id },
-                            update: { $set: { embedding: embeddings[idx] } },
-                            upsert: true
-                        }
-                    }));
+                    // Prepare bulk update query
+                    const updateQueries = [];
+                    const values = [];
     
-                    // Store embeddings in MongoDB
-                    await collection.bulkWrite(bulkUpdates);
-                    console.log(`✅ Batch ${index + 1} stored successfully in MongoDB.`);
+                    textData.forEach((item, idx) => {
+                        updateQueries.push(`WHEN id = $${idx * 2 + 1} THEN $${idx * 2 + 2}::jsonb`);
+                        values.push(item.id, JSON.stringify(embeddings[idx]));
+                    });
+    
+                    // Construct final UPDATE query
+                    const updateQuery = `
+                        UPDATE opportunity 
+                        SET embedding = CASE ${updateQueries.join(" ")} END
+                        WHERE id IN (${textData.map((_, i) => `$${i * 2 + 1}`).join(", ")});
+                    `;
+    
+                    // Execute batch update
+                    await DB.query(updateQuery, values);
+                    logger.info(`✅ Successfully stored embeddings for ${textData.length} records.`);
+    
                 } catch (error) {
-                    console.error(`❌ Error processing batch ${index + 1}:`, error.response?.data || error.message);
+                    console.error("❌ Error processing embeddings:", error.response?.data || error.message);
                 }
+    
+                processed += documents.length;
             }
     
-            console.log(`🎉 All documents processed successfully!`);
+            logger.info(`🎉 All ${totalRecords} opportunities processed successfully!`);
             return true;
         } catch (error) {
-            console.error(`Error in generateAndStoreEmbeddings:`, error);
+            console.error(`❌ Error in generateAndStoreEmbeddings:`, error);
             return false;
         }
     },
