@@ -51,12 +51,11 @@ router.get("/proposals", async (req, res, next) => {
 
         res.status(200).json(rows);
     } catch (error) {
-        logger.error(`Error fetching proposals: ${error.message}`);
-        res.status(500).json({ success: false, message: "Error fetching proposals", error: error.message });
+        next(error);
     }
 });
 
-router.post("/search", async (req, res) => {
+router.post("/search", async (req, res, next) => {
     try {
         const collections = {
             opportunities: {
@@ -91,8 +90,7 @@ router.post("/search", async (req, res) => {
 
         res.json({ results: searchResults });
     } catch (error) {
-        logger.error("ERROR:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+        next(error);
     }
 });
 
@@ -105,8 +103,7 @@ router.get("/generate-embeddings", async (req, res) => {
         
         res.json({ message: "Embeddings created for all datasets!" });
     } catch (error) {
-        logger.error(`Error fetching proposals: ${error}`);
-        res.json({ message: "Server side error occurred", error: error });
+        next(error);
     }
 });
 
@@ -126,8 +123,7 @@ router.get("/remove-embeddings", async (req, res) => {
         
         res.json({ message: "Embeddings removed for all datasets!" });
     } catch (error) {
-        logger.error(`Server side error occurred: ${error}`);
-        res.json({ message: "Server side error occurred", error: error });
+        next(error);
     }
 });
 

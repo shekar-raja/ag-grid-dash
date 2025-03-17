@@ -127,8 +127,9 @@ embeddings.functions = {
               ]).exec();
             return documents.sort((a, b) => b.score - a.score);
         } catch (error) {
-            console.error(`❌ ERROR performing vector search:`, error);
-            return [];
+            // console.error(`❌ ERROR performing vector search:`, error);
+            throw new Error("❌ ERROR performing vector search:")
+            // return [];
         }
     },
     removeEmbeddings: async (collection) => {
