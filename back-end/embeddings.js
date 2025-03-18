@@ -3,6 +3,7 @@ const axios = require("axios");
 const config = require("./config/values");
 const DB = require("./db");
 const { logger } = require("./config/logger");
+const { resolve } = require("bluebird");
 
 const BATCH_SIZE = 500;
 
@@ -11,35 +12,34 @@ embeddings = () => { };
 embeddings.functions = {
     generateAndStoreEmbeddings: async (table) => {
         try {
-            logger.info("🚀 Fetching records from PostgreSQL where embeddings do not exist...");
+            logger.info("Fetching records from PostgreSQL where embeddings do not exist...");
     
             // Count total records that need embeddings
             const countResult = await DB.query(`
-                SELECT COUNT(*) FROM opportunity WHERE embedding IS NULL;
+                SELECT COUNT(*) FROM ${table} WHERE embedding IS NULL;
             `);
-            const totalRecords = parseInt(countResult.rows[0].count, 10);
+            let totalRecords = parseInt(countResult.rows[0].count, 10);
     
             if (totalRecords === 0) {
                 logger.info(`✅ No new records found without embeddings.`);
                 return true;
             }
     
-            logger.info(`📂 Found ${totalRecords} records. Processing in batches of ${BATCH_SIZE}...`);
+            logger.info(`Found ${totalRecords} records. Processing in batches of ${BATCH_SIZE}...`);
     
-            let processed = 0;
-    
-            while (processed < totalRecords) {
-                // Fetch the next batch of records
+            while (totalRecords > 0) {
+                // Fetch next batch of records **without OFFSET**
                 const result = await DB.query(`
-                    SELECT * FROM opportunity
+                    SELECT id, "leadId", "leadName", "phone", "email", "status", "priority", "lastInteraction", "followUp", "source", "comments"
+                    FROM ${table}
                     WHERE embedding IS NULL
-                    LIMIT $1 OFFSET $2;
-                `, [BATCH_SIZE, processed]);
+                    LIMIT $1;
+                `, [BATCH_SIZE]);
     
                 const documents = result.rows;
-                if (documents.length === 0) break; // No more documents to process
+                if (documents.length === 0) break;
     
-                logger.info(`🔹 Processing batch ${processed / BATCH_SIZE + 1} (${documents.length} records)...`);
+                logger.info(`Processing batch of ${documents.length} records...`);
     
                 // Prepare text data for embedding generation
                 const textData = documents.map((doc) => ({
@@ -51,7 +51,7 @@ embeddings.functions = {
                         .trim(),
                 }));
     
-                logger.info(`📤 Sending ${textData.length} records for embedding generation...`);
+                logger.info(`Sending ${textData.length} records for embedding generation...`);
     
                 try {
                     // Send batch request to Python API
@@ -62,45 +62,42 @@ embeddings.functions = {
                     );
     
                     const embeddings = response.data.embeddings; // Expecting an array of embeddings
-    
-                    logger.info(`📥 Received ${embeddings?.length || 0} embeddings for ${textData.length} texts.`);
+                    logger.info(`Received ${embeddings?.length || 0} embeddings for ${textData.length} texts.`);
     
                     if (!embeddings || embeddings.length !== textData.length) {
-                        console.error("❌ Mismatch in embeddings received.");
-                        return false;
+                        logger.error(`Mismatch in embeddings received. Skipping this batch.`);
+                        continue;
                     }
     
                     // Prepare bulk update query
-                    const updateQueries = [];
-                    const values = [];
-    
-                    textData.forEach((item, idx) => {
-                        updateQueries.push(`WHEN id = $${idx * 2 + 1} THEN $${idx * 2 + 2}::jsonb`);
-                        values.push(item.id, JSON.stringify(embeddings[idx]));
-                    });
-    
-                    // Construct final UPDATE query
                     const updateQuery = `
-                        UPDATE opportunity 
-                        SET embedding = CASE ${updateQueries.join(" ")} END
+                        UPDATE ${table} 
+                        SET embedding = CASE ${textData.map((_, i) => `WHEN id = $${i * 2 + 1} THEN $${i * 2 + 2}::jsonb`).join(" ")}
+                        END 
                         WHERE id IN (${textData.map((_, i) => `$${i * 2 + 1}`).join(", ")});
                     `;
     
+                    const values = textData.flatMap((item, idx) => [item.id, JSON.stringify(embeddings[idx])]);
+    
                     // Execute batch update
                     await DB.query(updateQuery, values);
-                    logger.info(`✅ Successfully stored embeddings for ${textData.length} records.`);
+                    logger.info(`Successfully stored embeddings for ${textData.length} records.`);
     
                 } catch (error) {
-                    console.error("❌ Error processing embeddings:", error.response?.data || error.message);
+                    logger.error(`Error processing batch: ${error.response?.data || error.message}`);
                 }
     
-                processed += documents.length;
+                // Recalculate remaining records
+                const newCountResult = await DB.query(`
+                    SELECT COUNT(*) FROM ${table} WHERE embedding IS NULL;
+                `);
+                totalRecords = parseInt(newCountResult.rows[0].count, 10);
             }
     
-            logger.info(`🎉 All ${totalRecords} opportunities processed successfully!`);
+            logger.info(`All embeddings processed successfully!`);
             return true;
         } catch (error) {
-            console.error(`❌ Error in generateAndStoreEmbeddings:`, error);
+            logger.error(`Error in generateAndStoreEmbeddings: ${error.message}`);
             return false;
         }
     },
@@ -132,21 +129,54 @@ embeddings.functions = {
             // return [];
         }
     },
-    removeEmbeddings: async (collection) => {
-        const documents = await collection.find({ embedding: { $exists: true } });
-        
-        for (const doc of documents) {
-            try {
-
-                // Remove embedding in MongoDB
-                await collection.updateOne(
-                    { _id: doc._id },
-                    { $unset: { embedding: 1 } }
-                );
-            } catch (error) {
-                console.error(`❌ ERROR processing ${doc._id}:`, error.response?.data || error.message);
+    removeEmbeddings: (tables = []) => {
+        return new Promise((resolve, reject) => {
+            if (tables.length === 0) {
+                logger.warn("⚠ No tables provided. Skipping embedding removal.");
+                return false;
             }
-        }
+            const promises = tables.map((table) => {
+                return DB.query(`UPDATE ${table} SET embedding = NULL;`);
+            });
+    
+            Promise.all(promises)
+                .then((result) => {
+                    logger.info("Embeddings removed successfully from all tables");
+                    resolve("Embeddings removed successfully from all tables");
+                })
+                .catch((error) => {
+                    logger.error(`❌ Postgres Error: ${error.message}`);
+                    reject(new Error("Postgres Error Occurred"));
+                });
+        });
+    },
+    indexEmbeddings: async (batchSize=1000, embeddings) => {
+        return new Promise((resolve, reject) => {
+            if (!embeddings || embeddings.length === 0) {
+                return reject("No embeddings to index");
+            }
+
+            let promises = [];
+
+            for (let i = 0; i < embeddings.length; i += batchSize) {
+                const batch = embeddings.slice(i, i + batchSize);
+                const payload = {
+                    ids: batch.map(row => row.id),
+                    embeddings: batch.map(row => row.embedding)
+                }
+                logger.info(`Sending batch ${i / batchSize + 1} to Python API`);
+                promises.push(
+                    axios.post(config.values.PYTHON_SERVER_URL + "/index-embeddings", payload)
+                );
+            }
+
+            return Promise.all(promises)
+                .then((result) => {
+                    return resolve(true);
+                }).catch((error) => {
+                    return reject("Python server error: ");
+                });
+        });
     }
 }
 

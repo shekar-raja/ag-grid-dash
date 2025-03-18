@@ -55,45 +55,6 @@ router.get("/proposals", async (req, res, next) => {
     }
 });
 
-router.post("/search", async (req, res, next) => {
-    try {
-        const collections = {
-            opportunities: {
-                collection: Opportunity,
-                index: "opportunity_index"
-            },
-            // proposals: {
-            //     collection: Proposal,
-            //     index: "proposals_index"
-            // },
-            // policyholders: {
-            //     collection: PolicyHolder,
-            //     index: "policy_holders_index"
-            // }
-            // policies: Policy
-        }
-        const { query } = req.body;
-        if (!query) return res.status(400).json({ error: "Query is required" });
-
-        // Generate embedding for the query
-        const response = await axios.post(config.values.PYTHON_SERVER_URL + "/generate_embedding", { text: query });
-        const queryEmbedding = response.data.embedding;
-
-        let searchResults = {};
-
-        for (let key in collections) {
-            logger.info(`Searching in ${key} collection...`);
-            const results = await embeddings.functions.performVectorSearch(queryEmbedding, collections[key]["collection"], collections[key]["index"]);
-            // searchResults.push(...results);
-            searchResults[key] = results;
-        }
-
-        res.json({ results: searchResults });
-    } catch (error) {
-        next(error);
-    }
-});
-
 router.get("/generate-embeddings", async (req, res) => {
     try {
         await embeddings.functions.generateAndStoreEmbeddings("opportunity");
@@ -107,21 +68,65 @@ router.get("/generate-embeddings", async (req, res) => {
     }
 });
 
-router.get("/remove-embeddings", async (req, res) => {
+router.get("/remove-embeddings", async (req, res, next) => {
+    const tables = ["opportunity"];
+
+    embeddings.functions.removeEmbeddings(tables).then((result) => {
+        res.status(200).json({ success: true, message: result})
+    }).catch((error) => {
+        next(error)
+    });
+});
+
+router.get("/index-embeddings", async (req, res, next) => {
     try {
-        const collections = {
-            opportunities: Opportunity,
-            proposals: Proposal,
-            policyholders: PolicyHolder,
-            policies: Policy
+        logger.info("Fetching embeddings from PostgreSQL for indexing");
+
+        const { rows } = await DB.query(`SELECT id, embedding FROM opportunity WHERE embedding IS NOT NULL;`);
+
+        if (rows.length === 0) {
+            logger.warn("No embeddings found in database");
+            next();
         }
 
-        for (let key in collections) {
-            logger.info(`Removing embeddings in ${key} collection...`);
-            const results = await embeddings.functions.removeEmbeddings(collections[key]);
+        logger.info(`Found ${rows.length} embeddings. Sending in batches`);
+
+        return embeddings.functions.indexEmbeddings(1000, rows)
+            .then((result) => {
+                if (result) {
+                    logger.info(`${rows.length} embeddings indexed in FIASS successfully`);
+                    res.status(200).json({ success: true, message: `${rows.length} embeddings indexed in FIASS successfully` });
+                }
+            })
+            .catch((error) => {
+                next(error);
+            });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post("/search", async (req, res, next) => {
+    try {
+        let collections = {
+            opportunity: "opportunity"
         }
-        
-        res.json({ message: "Embeddings removed for all datasets!" });
+        const { query } = req.body;
+        if (!query) return res.status(400).json({ error: "Query is required" });
+
+        // Generate embedding for the query
+        const response = await axios.post(config.values.PYTHON_SERVER_URL + "/generate-query-embedding", { text: query });
+        const queryEmbedding = response.data.embedding;
+
+        let searchResults = {};
+
+        for (let key in collections) {
+            logger.info(`Searching in ${key} collection...`);
+            const results = await embeddings.functions.performVectorSearch(queryEmbedding, collections[key]["collection"], collections[key]["index"]);
+            searchResults[key] = results;
+        }
+
+        res.json({ results: searchResults });
     } catch (error) {
         next(error);
     }
