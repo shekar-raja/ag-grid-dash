@@ -150,35 +150,38 @@ embeddings.functions = {
                 });
         });
     },
-    indexEmbeddings: async (batchSize=1000, embeddings) => {
+    indexEmbeddings: async (batchSize = 1000, allEmbeddings) => {
         return new Promise((resolve, reject) => {
-            if (!embeddings || embeddings.length === 0) {
+            if (!allEmbeddings || allEmbeddings.length === 0) {
                 return reject("No embeddings to index");
             }
-
+    
             let promises = [];
-
-            for (let i = 0; i < embeddings.length; i += batchSize) {
-                const batch = embeddings.slice(i, i + batchSize);
-                const payload = {
-                    ids: batch.map(row => row.id),
-                    embeddings: batch.map(row => row.embedding)
+    
+            allEmbeddings.forEach(({ table_name, embeddings }) => {
+                for (let i = 0; i < embeddings.length; i += batchSize) {
+                    const batch = embeddings.slice(i, i + batchSize);
+                    const payload = {
+                        table_name: table_name, // Specify which table these embeddings belong to
+                        ids: batch.map(row => row.id),
+                        embeddings: batch.map(row => row.embedding)
+                    };
+                    logger.info(`Sending batch ${i / batchSize + 1} of '${table_name}' to Python API`);
+                    promises.push(
+                        axios.post(config.values.PYTHON_SERVER_URL + "/index-embeddings", payload)
+                    );
                 }
-                logger.info(`Sending batch ${i / batchSize + 1} to Python API`);
-                promises.push(
-                    axios.post(config.values.PYTHON_SERVER_URL + "/index-embeddings", payload)
-                );
-            }
-
+            });
+    
             return Promise.all(promises)
                 .then((result) => {
                     return resolve(true);
-                }).catch((error) => {
-                    return reject("Python server error: ");
+                })
+                .catch((error) => {
+                    return reject("Python server error: " + error);
                 });
         });
     }
 }
-
 
 module.exports = embeddings;

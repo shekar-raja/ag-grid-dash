@@ -82,20 +82,35 @@ router.get("/index-embeddings", async (req, res, next) => {
     try {
         logger.info("Fetching embeddings from PostgreSQL for indexing");
 
-        const { rows } = await DB.query(`SELECT id, embedding FROM opportunity WHERE embedding IS NOT NULL;`);
+        // List of tables to process
+        const tables = ["opportunity"]; // Add more tables as needed
 
-        if (rows.length === 0) {
-            logger.warn("No embeddings found in database");
-            next();
+        let allEmbeddings = [];
+
+        for (let table of tables) {
+            logger.info(`Fetching embeddings from table: ${table}`);
+            const { rows } = await DB.query(`SELECT id, embedding FROM ${table} WHERE embedding IS NOT NULL;`);
+
+            if (rows.length === 0) {
+                logger.warn(`No embeddings found in '${table}' table`);
+                continue;
+            }
+
+            allEmbeddings.push({ table_name: table, embeddings: rows });
+            logger.info(`Found ${rows.length} embeddings in '${table}', preparing for indexing...`);
         }
 
-        logger.info(`Found ${rows.length} embeddings. Sending in batches`);
+        if (allEmbeddings.length === 0) {
+            logger.warn("No embeddings found in any table.");
+            return res.status(404).json({ success: false, message: "No embeddings found in any table." });
+        }
 
-        return embeddings.functions.indexEmbeddings(1000, rows)
+        // Send embeddings to FAISS for indexing
+        return embeddings.functions.indexEmbeddings(1000, allEmbeddings)
             .then((result) => {
                 if (result) {
-                    logger.info(`${rows.length} embeddings indexed in FIASS successfully`);
-                    res.status(200).json({ success: true, message: `${rows.length} embeddings indexed in FIASS successfully` });
+                    logger.info(`Successfully indexed embeddings in FAISS`);
+                    res.status(200).json({ success: true, message: `Embeddings indexed successfully in FAISS.` });
                 }
             })
             .catch((error) => {
@@ -108,25 +123,44 @@ router.get("/index-embeddings", async (req, res, next) => {
 
 router.post("/search", async (req, res, next) => {
     try {
-        let collections = {
-            opportunity: "opportunity"
-        }
+        const table_names = {
+            "opportunity": "opportunity"
+        };
         const { query } = req.body;
         if (!query) return res.status(400).json({ error: "Query is required" });
 
-        // Generate embedding for the query
-        const response = await axios.post(config.values.PYTHON_SERVER_URL + "/generate-query-embedding", { text: query });
-        const queryEmbedding = response.data.embedding;
+        // Choose the correct table based on predefined logic
+        const table_name = table_names["opportunity"];
 
-        let searchResults = {};
+        logger.info(`Sending query to Python API for table '${table_name}': ${query}`);
 
-        for (let key in collections) {
-            logger.info(`Searching in ${key} collection...`);
-            const results = await embeddings.functions.performVectorSearch(queryEmbedding, collections[key]["collection"], collections[key]["index"]);
-            searchResults[key] = results;
+        const response = await axios.post(
+            config.values.PYTHON_SERVER_URL + "/search",
+            { text: query, table_name },
+            { timeout: 60000 }
+        );
+
+        if (!response.data || !response.data.matched_ids) {
+            logger.error("Invalid response from Python search API.");
+            return res.status(500).json({ error: "Invalid response from search API" });
         }
 
-        res.json({ results: searchResults });
+        const matchedIds = response.data.matched_ids;
+        const queryPlaceholders = matchedIds.map((_, i) => `$${i + 1}`).join(", ");
+
+        if (matchedIds.length === 0) {
+            return res.status(200).json({ results: [], message: "No results found" });
+        }
+
+        logger.info(`Fetching ${matchedIds.length} documents from PostgreSQL.`);
+
+        const { rows } = await DB.query(
+            `SELECT id, "leadId", "leadName", "status", "priority", "followUp", "source", "comments" FROM ${table_name} WHERE id IN (${queryPlaceholders});`,
+            matchedIds
+        );
+
+        logger.info(`Retrieved ${rows.length} matching documents.`);
+        res.status(200).json({ results: rows });
     } catch (error) {
         next(error);
     }
