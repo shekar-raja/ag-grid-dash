@@ -21,7 +21,7 @@ embeddings.functions = {
             let totalRecords = parseInt(countResult.rows[0].count, 10);
     
             if (totalRecords === 0) {
-                logger.info(`✅ No new records found without embeddings.`);
+                logger.info(`No new records found without embeddings.`);
                 return true;
             }
     
@@ -42,13 +42,17 @@ embeddings.functions = {
                 logger.info(`Processing batch of ${documents.length} records...`);
     
                 // Prepare text data for embedding generation
+                // const textData = documents.map((doc) => ({
+                //     id: doc.id, // Use PostgreSQL `id` as the identifier
+                //     text: Object.entries(doc)
+                //         .filter(([key]) => key !== "id" && key !== "embedding") // Ignore metadata
+                //         .map(([key, value]) => `${key}: ${value}`)
+                //         .join(", ")
+                //         .trim(),
+                // }));
                 const textData = documents.map((doc) => ({
-                    id: doc.id, // Use PostgreSQL `id` as the identifier
-                    text: Object.entries(doc)
-                        .filter(([key]) => key !== "id" && key !== "embedding") // Ignore metadata
-                        .map(([key, value]) => `${key}: ${value}`)
-                        .join(", ")
-                        .trim(),
+                    id: doc.id,
+                    text: `Lead Name: ${doc.leadName}.Status: ${doc.status}.Priority: ${doc.priority}.Last Interaction: ${doc.lastInteraction}.Follow-Up Date: ${doc.followUp}.Source: ${doc.source}.Comments: ${doc.comments || "No comments."}.Email: ${doc.email}.Lead ID: ${doc.leadId}.Phone: ${doc.phone}`
                 }));
     
                 logger.info(`Sending ${textData.length} records for embedding generation...`);
