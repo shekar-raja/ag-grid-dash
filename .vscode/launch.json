@@ -35,7 +35,7 @@
           "name": "Debug Python",
           "type": "debugpy",
           "request": "launch",
-          "program": "${workspaceFolder}/embedding-service/embedding_service.py",  // Change this to your Python main file
+          "program": "${workspaceFolder}/embedding-service/main.py",  // Change this to your Python main file
           "console": "integratedTerminal"
       }
   ]
