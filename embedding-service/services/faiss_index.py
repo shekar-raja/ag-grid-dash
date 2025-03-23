@@ -18,7 +18,7 @@ def get_id_path(table_name):
     return os.path.join(FAISS_INDEX_DIR, f"{table_name}_row_ids.json")
 
 def create_faiss_index(dim: int):
-    return faiss.IndexFlatL2(dim)
+    return faiss.IndexFlatIP(dim)
 
 def save_faiss_index(table_name: str):
     if table_name in table_indexes:

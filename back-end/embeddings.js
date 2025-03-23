@@ -5,7 +5,7 @@ const DB = require("./db");
 const { logger } = require("./config/logger");
 const { resolve } = require("bluebird");
 
-const BATCH_SIZE = 500;
+const BATCH_SIZE = 100;
 
 embeddings = () => { };
 
@@ -42,18 +42,17 @@ embeddings.functions = {
                 logger.info(`Processing batch of ${documents.length} records...`);
     
                 // Prepare text data for embedding generation
-                // const textData = documents.map((doc) => ({
-                //     id: doc.id, // Use PostgreSQL `id` as the identifier
-                //     text: Object.entries(doc)
-                //         .filter(([key]) => key !== "id" && key !== "embedding") // Ignore metadata
-                //         .map(([key, value]) => `${key}: ${value}`)
-                //         .join(", ")
-                //         .trim(),
-                // }));
                 const textData = documents.map((doc) => ({
                     id: doc.id,
-                    text: `Lead Name: ${doc.leadName}.Status: ${doc.status}.Priority: ${doc.priority}.Last Interaction: ${doc.lastInteraction}.Follow-Up Date: ${doc.followUp}.Source: ${doc.source}.Comments: ${doc.comments || "No comments."}.Email: ${doc.email}.Lead ID: ${doc.leadId}.Phone: ${doc.phone}`
-                }));
+                    text: `
+                        Lead ${doc.leadName || "N/A"} is currently in the ${doc.status || "N/A"} stage with a ${doc.priority || "N/A"} priority.
+                        Last interaction was through ${doc.lastInteraction || "N/A"}, and the next follow-up is scheduled on ${doc.followUp || "N/A"}.
+                        Source of lead: ${doc.source || "N/A"}.
+                        Additional details: ${doc.comments || "No comments"}.
+                        Contact: ${doc.email || "N/A"}, ${doc.phone || "N/A"}.
+                        Lead ID: ${doc.leadId || "N/A"}.
+                        `.replace(/\s+/g, ' ').trim()
+                  }));
     
                 logger.info(`Sending ${textData.length} records for embedding generation...`);
     

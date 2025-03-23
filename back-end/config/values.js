@@ -4,6 +4,5 @@ module.exports.values = {
     'POSTGRESQL_URL': "ag-grid-db.postgres.database.azure.com",
     "POSTGRESQL_USER_NAME": "adminuser",
     "POSTGRESQL_PWD": "Raja@2104",
-    "POSTGRESQL_DB": "ag-grid-db",
-    
+    "POSTGRESQL_DB": "ag-grid-db"
 };

@@ -150,14 +150,16 @@ router.post("/search", async (req, res, next) => {
             return res.status(500).json({ error: "Invalid response from search API" });
         }
 
-        let matchedIds = faissResponse.data.matched_ids;
-        if (matchedIds.length === 0) {
+        let faissIds = faissResponse.data.matched_ids;
+        let faissScores = faissResponse.data.distances;
+
+        if (faissIds.length === 0) {
             return res.status(200).json({ results: [], message: "No results found" });
         }
 
         // Step 2️⃣: Extract Dynamic Filters from Query (using NLP)
         let fiassQuery = `SELECT id, "leadId", "leadName", "phone", "email", "status", "priority", "lastInteraction", "followUp", "source", "comments" FROM opportunity WHERE id = ANY($1)`;
-        let values = [matchedIds];
+        let values = [faissIds];
         let filters = [];
 
         let doc = nlp(query);
@@ -173,7 +175,7 @@ router.post("/search", async (req, res, next) => {
         const createFuzzySearch = (keywords) => new Fuse(keywords.map(k => ({ keyword: k })), fuzzyOptions);
 
         // ** Define mappings for structured fields **
-        const statusKeywords = ["converted", "in progress", "disqualified", "qualified", "closed", "new"];
+        const statusKeywords = ["converted", "in progress", "disqualified", "qualified", "closed", "new", "open"];
         const priorityKeywords = ["high", "medium", "low", "urgent"];
         const interactionKeywords = ["chat", "email", "phone call", "meeting", "text message"];
         const sourceKeywords = ["partner", "website", "social media", "trade show", "webinar", "advertisement", "referral"];
@@ -191,38 +193,38 @@ router.post("/search", async (req, res, next) => {
 
         // Process words in query
         function processQuery(words) {
-            let filters = [];
-            const dateRegex = /\d{4}-\d{2}-\d{2}/; // Detect dates
-
+            const filters = {};
+            const dateRegex = /\d{4}-\d{2}-\d{2}/;
+        
             words.forEach(word => {
-                let lowerWord = word.toLowerCase();
-
+                const lowerWord = word.toLowerCase();
+        
                 if (dateRegex.test(word)) {
-                    filters.push(`"followUp" = '${word}'`);
+                    filters["followUp"] = `"followUp" = '${word}'`;
+                } else if (word.includes("@")) {
+                    filters["email"] = `"email" ILIKE '%${word}%'`;
+                } else if (/^\(\d{3}\)/.test(word)) {
+                    filters["phone"] = `"phone" LIKE '${word}%'`;
                 } else {
-                    // Use fuzzy search to find best match
-                    let matchedStatus = findBestMatch(statusSearch, lowerWord);
-                    let matchedPriority = findBestMatch(prioritySearch, lowerWord);
-                    let matchedInteraction = findBestMatch(interactionSearch, lowerWord);
-                    let matchedSource = findBestMatch(sourceSearch, lowerWord);
-
-                    if (matchedStatus) {
-                        filters.push(`"status" = '${matchedStatus}'`);
-                    } else if (matchedPriority) {
-                        filters.push(`"priority" = '${matchedPriority.toUpperCase()}'`);
-                    } else if (matchedInteraction) {
-                        filters.push(`"lastInteraction" = '${matchedInteraction}'`);
-                    } else if (matchedSource) {
-                        filters.push(`"source" = '${matchedSource}'`);
-                    } else if (word.includes("@")) {
-                        filters.push(`"email" ILIKE '%${word}%'`);
-                    } else if (/^\(\d{3}\)/.test(word)) {
-                        filters.push(`"phone" LIKE '${word}%'`);
+                    // Fuzzy match
+                    const matchedStatus = findBestMatch(statusSearch, lowerWord);
+                    const matchedPriority = findBestMatch(prioritySearch, lowerWord);
+                    const matchedInteraction = findBestMatch(interactionSearch, lowerWord);
+                    const matchedSource = findBestMatch(sourceSearch, lowerWord);
+        
+                    if (matchedStatus && !filters["status"]) {
+                        filters["status"] = `"status" = '${matchedStatus}'`;
+                    } else if (matchedPriority && !filters["priority"]) {
+                        filters["priority"] = `"priority" = '${matchedPriority.toUpperCase()}'`;
+                    } else if (matchedInteraction && !filters["lastInteraction"]) {
+                        filters["lastInteraction"] = `"lastInteraction" = '${matchedInteraction}'`;
+                    } else if (matchedSource && !filters["source"]) {
+                        filters["source"] = `"source" = '${matchedSource}'`;
                     }
                 }
             });
-
-            return filters;
+        
+            return Object.values(filters); // return array of unique filters
         }
 
         filters = processQuery(words);
@@ -231,17 +233,27 @@ router.post("/search", async (req, res, next) => {
         
         if (filters.length > 0) {
             sqlQuery += `SELECT id, "leadId", "leadName", "phone", "email", "status", "priority", "lastInteraction", "followUp", "source", "comments" FROM opportunity WHERE `;
-            sqlQuery += `${filters.join(" OR ")}`;
+            sqlQuery += `${filters.join(" AND ")}`;
         }
 
         logger.info(`Running SQL query with extracted filters: ${sqlQuery}`);
         const semanticResults = await DB.query(fiassQuery, values);
         const lexicalResults = await DB.query(sqlQuery);
 
-        let mergedResults = lexicalResults.rows.concat(semanticResults.rows);
-        let uniqueResults = Array.from(new Map(mergedResults.map(item => [item.id, item])).values());
+        const scoreMap = new Map();
+        faissIds.forEach((id, index) => {
+            scoreMap.set(id, faissScores[index]);
+        });
 
-        res.status(200).json({ results: { "opportunities": uniqueResults }});
+        const mergedResults = [...semanticResults.rows, ...lexicalResults.rows];
+        const uniqueResults = Array.from(new Map(mergedResults.map(item => [item.id, item])).values());
+
+        const scoredResults = uniqueResults.map(item => ({
+            ...item,
+            score: scoreMap.get(item.id) ?? Infinity // fallback for non-semantic matches
+        })).sort((a, b) => a.score - b.score);
+
+        res.status(200).json({ results: { "opportunities": scoredResults }});
     } catch (error) {
         next(error);
     }
