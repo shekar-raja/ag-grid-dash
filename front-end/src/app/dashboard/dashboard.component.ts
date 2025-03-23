@@ -19,16 +19,16 @@ export class DashboardComponent implements OnInit {
   theme = constants.tableTheme;
   opportunities: any[] = [];
   columnDefs = [
-    { field: 'Lead ID', headerName: 'Lead ID', sortable: true, filter: true },
-    { field: 'Lead Name', headerName: 'Lead Name', sortable: true, filter: true },
-    { field: 'Status', headerName: 'Status', sortable: true, filter: true },
-    // { field: 'Phone No.', headerName: 'Phone No.', sortable: true, filter: true },
-    { field: 'Email', headerName: 'Email', sortable: true, filter: true },
-    { field: 'Priority', headerName: 'Priority', sortable: true, filter: true },
-    { field: 'Last interaction', headerName: 'Last Interaction', sortable: true, filter: true },
-    { field: 'Next Follow up', headerName: 'Next Follow Up', sortable: true, filter: true },
-    { field: 'Source', headerName: 'Source', sortable: true, filter: true },
-    { field: 'Comments', headerName: 'Comments', sortable: true, filter: true }
+    { field: 'leadId', headerName: 'Lead ID', sortable: true, filter: true },
+    { field: 'leadName', headerName: 'Lead Name', sortable: true, filter: true },
+    { field: 'status', headerName: 'Status', sortable: true, filter: true },
+    { field: 'phone', headerName: 'Phone No.', sortable: true, filter: true },
+    { field: 'email', headerName: 'Email', sortable: true, filter: true },
+    { field: 'priority', headerName: 'Priority', sortable: true, filter: true },
+    { field: 'lastInteraction', headerName: 'Last Interaction', sortable: true, filter: true },
+    { field: 'followUp', headerName: 'Next Follow Up', sortable: true, filter: true },
+    { field: 'source', headerName: 'Source', sortable: true, filter: true },
+    { field: 'comments', headerName: 'Comments', sortable: true, filter: true }
   ];
 
   defaultColDef: ColDef = {
@@ -68,7 +68,7 @@ export class DashboardComponent implements OnInit {
     // });
 
     this._sharedService.getProposals().subscribe((response: any) => {
-      const statusCounts = this.countStatus(response, 'Status');
+      const statusCounts = this.countStatus(response, 'status');
       this.proposalsChart = {
         title: { text: 'Proposals Status' },
         data: statusCounts,
@@ -76,7 +76,7 @@ export class DashboardComponent implements OnInit {
         axes: [{ type: 'category', position: 'bottom' }, { type: 'number', position: 'left' }]
       };
 
-      const claimsCounts = this.countStatus(response, 'Status');
+      const claimsCounts = this.countStatus(response, 'status');
       this.claimsChart = {
         title: {
           text: 'Proposals Ratio',
@@ -111,44 +111,44 @@ export class DashboardComponent implements OnInit {
       };
     });
 
-    this._sharedService.getPolicies().subscribe((response: any) => {
-      let data = this.aggregateByMonth(response, 'StartDate', 'CoverageAmount');
-      data = data.map(item => ({
-        date: new Date(item.date), // Convert string to Date object
-        value: item.value
-      })).sort((a, b) => a.date.getTime() - b.date.getTime());;
-      this.policiesChart = {
-        title: { text: 'Policies Over Time' },
-        data: data,
-        series: [
-          {
-            type: 'line',
-            xKey: 'date', // X-axis should be the date
-            yKey: 'value', // Y-axis should be the value
-            stroke: '#007bff',
-            marker: {
-              size: 5
-            }
-          }
-        ],
-        axes: [
-          {
-            type: 'time', // Use time scale for dates
-            position: 'bottom',
-            title: {
-              text: 'Date'
-            }
-          },
-          {
-            type: 'number',
-            position: 'left',
-            title: {
-              text: 'Policy Value'
-            }
-          }
-        ]
-      };
-    });
+    // this._sharedService.getPolicies().subscribe((response: any) => {
+    //   let data = this.aggregateByMonth(response, 'StartDate', 'CoverageAmount');
+    //   data = data.map(item => ({
+    //     date: new Date(item.date), // Convert string to Date object
+    //     value: item.value
+    //   })).sort((a, b) => a.date.getTime() - b.date.getTime());;
+    //   this.policiesChart = {
+    //     title: { text: 'Policies Over Time' },
+    //     data: data,
+    //     series: [
+    //       {
+    //         type: 'line',
+    //         xKey: 'date', // X-axis should be the date
+    //         yKey: 'value', // Y-axis should be the value
+    //         stroke: '#007bff',
+    //         marker: {
+    //           size: 5
+    //         }
+    //       }
+    //     ],
+    //     axes: [
+    //       {
+    //         type: 'time', // Use time scale for dates
+    //         position: 'bottom',
+    //         title: {
+    //           text: 'Date'
+    //         }
+    //       },
+    //       {
+    //         type: 'number',
+    //         position: 'left',
+    //         title: {
+    //           text: 'Policy Value'
+    //         }
+    //       }
+    //     ]
+    //   };
+    // });
   }
 
   countStatus(data: any[], key: string) {

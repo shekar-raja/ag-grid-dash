@@ -32,23 +32,4 @@ mongoose.connection.on('error', (error) => {
     }, 1000);
 });
 
-/** On Mongo disconnect */
-// mongoose.connection.on('disconnected', (error) => {
-//     console.log(`${chalk.red('x')} MongoDB disconnected. ${error}`);
-//     setTimeout(() => {
-//         if (mongoose.connection.readyState === 0) {
-//             db = mongoose.connect(connectionURI);
-//         }
-//     }, 1000);
-// });
-
-/* If the Node process ends, close the Mongoose connection **/
-// process.on('SIGINT', () => {
-//     mongoose.connection.close(() => {
-//         console.log('Mongoose default connection disconnected through app termination');
-//         process.exit(0);
-//     });
-// });
-
-
 module.exports = mongoose;

@@ -1,57 +1,108 @@
 const axios = require("axios");
 
 const config = require("./config/values");
+const DB = require("./db");
+const { logger } = require("./config/logger");
+const { resolve } = require("bluebird");
+
+const BATCH_SIZE = 100;
 
 embeddings = () => { };
 
 embeddings.functions = {
-    generateAndStoreEmbeddings: async (collection) => {
-        const documents = await collection.find({ embedding: { $exists: false } });
-        // const documents = await collection.find().lean();
-
-        if (documents.length === 0) {
-            console.log(`No documents found without embeddings. Exiting.`);
-            return;
-        }
-
-        const promises = [];
-        
-        for (const doc of documents) {
-            // Combine all fields dynamically into a single text
-            const combinedText = Object.entries(doc["_doc"])
-                .filter(([key, value]) => key !== "_id" && key !== "__v") // Ignore MongoDB metadata
-                .map(([key, value]) => `${key}: ${value}`) // Format key-value pairs
-                .join(" ")
-                .trim();
-
-            if (!combinedText) {
-                console.log(`Skipping empty document: ${doc._id}`);
-                continue;
+    generateAndStoreEmbeddings: async (table) => {
+        try {
+            logger.info("Fetching records from PostgreSQL where embeddings do not exist...");
+    
+            // Count total records that need embeddings
+            const countResult = await DB.query(`
+                SELECT COUNT(*) FROM ${table} WHERE embedding IS NULL;
+            `);
+            let totalRecords = parseInt(countResult.rows[0].count, 10);
+    
+            if (totalRecords === 0) {
+                logger.info(`No new records found without embeddings.`);
+                return true;
             }
-
-            try {
-                // Send text to Python service for embedding
-                const response = await axios.post(config.values.PYTHON_SERVER_URL + "/generate_embedding/", { text: combinedText });
-                const embedding = response.data.embedding;
-
-                // Update embedding in MongoDB
-                promises.push(collection.updateOne({ _id: doc._id },
-                    { $set: { embedding: embedding } }));
-                // await collection.updateOne(
-                //     { _id: doc._id },
-                //     { $set: { embedding: embedding } }
-                // );
-            } catch (error) {
-                console.error(`❌ ERROR processing ${doc._id}:`, error.response?.data || error.message);
+    
+            logger.info(`Found ${totalRecords} records. Processing in batches of ${BATCH_SIZE}...`);
+    
+            while (totalRecords > 0) {
+                // Fetch next batch of records **without OFFSET**
+                const result = await DB.query(`
+                    SELECT id, "leadId", "leadName", "phone", "email", "status", "priority", "lastInteraction", "followUp", "source", "comments"
+                    FROM ${table}
+                    WHERE embedding IS NULL
+                    LIMIT $1;
+                `, [BATCH_SIZE]);
+    
+                const documents = result.rows;
+                if (documents.length === 0) break;
+    
+                logger.info(`Processing batch of ${documents.length} records...`);
+    
+                // Prepare text data for embedding generation
+                const textData = documents.map((doc) => ({
+                    id: doc.id,
+                    text: `
+                        Lead ${doc.leadName || "N/A"} is currently in the ${doc.status || "N/A"} stage with a ${doc.priority || "N/A"} priority.
+                        Last interaction was through ${doc.lastInteraction || "N/A"}, and the next follow-up is scheduled on ${doc.followUp || "N/A"}.
+                        Source of lead: ${doc.source || "N/A"}.
+                        Additional details: ${doc.comments || "No comments"}.
+                        Contact: ${doc.email || "N/A"}, ${doc.phone || "N/A"}.
+                        Lead ID: ${doc.leadId || "N/A"}.
+                        `.replace(/\s+/g, ' ').trim()
+                  }));
+    
+                logger.info(`Sending ${textData.length} records for embedding generation...`);
+    
+                try {
+                    // Send batch request to Python API
+                    const response = await axios.post(
+                        `${config.values.PYTHON_SERVER_URL}/generate-embedding/`, 
+                        { texts: textData },
+                        { timeout: 60000 }
+                    );
+    
+                    const embeddings = response.data.embeddings; // Expecting an array of embeddings
+                    logger.info(`Received ${embeddings?.length || 0} embeddings for ${textData.length} texts.`);
+    
+                    if (!embeddings || embeddings.length !== textData.length) {
+                        logger.error(`Mismatch in embeddings received. Skipping this batch.`);
+                        continue;
+                    }
+    
+                    // Prepare bulk update query
+                    const updateQuery = `
+                        UPDATE ${table} 
+                        SET embedding = CASE ${textData.map((_, i) => `WHEN id = $${i * 2 + 1} THEN $${i * 2 + 2}::jsonb`).join(" ")}
+                        END 
+                        WHERE id IN (${textData.map((_, i) => `$${i * 2 + 1}`).join(", ")});
+                    `;
+    
+                    const values = textData.flatMap((item, idx) => [item.id, JSON.stringify(embeddings[idx])]);
+    
+                    // Execute batch update
+                    await DB.query(updateQuery, values);
+                    logger.info(`Successfully stored embeddings for ${textData.length} records.`);
+    
+                } catch (error) {
+                    logger.error(`Error processing batch: ${error.response?.data || error.message}`);
+                }
+    
+                // Recalculate remaining records
+                const newCountResult = await DB.query(`
+                    SELECT COUNT(*) FROM ${table} WHERE embedding IS NULL;
+                `);
+                totalRecords = parseInt(newCountResult.rows[0].count, 10);
             }
-        }
-        
-        return Promise.all(promises).then((response) => {
-            console.log(`✅ Stored embeddings in ${collection.modelName}`);
+    
+            logger.info(`All embeddings processed successfully!`);
             return true;
-        }).catch((error) => {
+        } catch (error) {
+            logger.error(`Error in generateAndStoreEmbeddings: ${error.message}`);
             return false;
-        });
+        }
     },
     performVectorSearch: async (queryEmbedding, collection, index) => {
         try {
@@ -76,27 +127,64 @@ embeddings.functions = {
               ]).exec();
             return documents.sort((a, b) => b.score - a.score);
         } catch (error) {
-            console.error(`❌ ERROR performing vector search:`, error);
-            return [];
+            // console.error(`❌ ERROR performing vector search:`, error);
+            throw new Error("❌ ERROR performing vector search:")
+            // return [];
         }
     },
-    removeEmbeddings: async (collection) => {
-        const documents = await collection.find({ embedding: { $exists: true } });
-        
-        for (const doc of documents) {
-            try {
-
-                // Remove embedding in MongoDB
-                await collection.updateOne(
-                    { _id: doc._id },
-                    { $unset: { embedding: 1 } }
-                );
-            } catch (error) {
-                console.error(`❌ ERROR processing ${doc._id}:`, error.response?.data || error.message);
+    removeEmbeddings: (tables = []) => {
+        return new Promise((resolve, reject) => {
+            if (tables.length === 0) {
+                logger.warn("⚠ No tables provided. Skipping embedding removal.");
+                return false;
             }
-        }
+            const promises = tables.map((table) => {
+                return DB.query(`UPDATE ${table} SET embedding = NULL;`);
+            });
+    
+            Promise.all(promises)
+                .then((result) => {
+                    logger.info("Embeddings removed successfully from all tables");
+                    resolve("Embeddings removed successfully from all tables");
+                })
+                .catch((error) => {
+                    logger.error(`❌ Postgres Error: ${error.message}`);
+                    reject(new Error("Postgres Error Occurred"));
+                });
+        });
+    },
+    indexEmbeddings: async (batchSize = 1000, allEmbeddings) => {
+        return new Promise((resolve, reject) => {
+            if (!allEmbeddings || allEmbeddings.length === 0) {
+                return reject("No embeddings to index");
+            }
+    
+            let promises = [];
+    
+            allEmbeddings.forEach(({ table_name, embeddings }) => {
+                for (let i = 0; i < embeddings.length; i += batchSize) {
+                    const batch = embeddings.slice(i, i + batchSize);
+                    const payload = {
+                        table_name: table_name, // Specify which table these embeddings belong to
+                        ids: batch.map(row => row.id),
+                        embeddings: batch.map(row => row.embedding)
+                    };
+                    logger.info(`Sending batch ${i / batchSize + 1} of '${table_name}' to Python API`);
+                    promises.push(
+                        axios.post(config.values.PYTHON_SERVER_URL + "/index-embeddings", payload)
+                    );
+                }
+            });
+    
+            return Promise.all(promises)
+                .then((result) => {
+                    return resolve(true);
+                })
+                .catch((error) => {
+                    return reject("Python server error: " + error);
+                });
+        });
     }
 }
-
 
 module.exports = embeddings;
