@@ -1,17 +1,42 @@
+// {
+//   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+//   "version": "0.2.0",
+//   "configurations": [
+//     {
+//       "type": "node",
+//       "request": "launch",
+//       "name": "Launch Program",
+//       "program": "${workspaceFolder}/back-end/app.js",
+//       "outputCapture": "std",
+//       // "preLaunchTask": "kill-port"
+//     }
+//   ]
+// }
 {
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
+  "compounds": [
+      {
+          "name": "Launch Node.js & Python",
+          "configurations": ["Launch Node.js", "Debug Python"]
+      }
+  ],
   "configurations": [
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Program",
-      "program": "${workspaceFolder}/back-end/app.js",
-      "outputCapture": "std",
-      // "env": {
-      //     "server": "client"
-      // }
-  }
-
+      {
+          "name": "Launch Node.js",
+          "type": "node",
+          "request": "launch",
+          "program": "${workspaceFolder}/back-end/app.js",  // Change this to your main Node.js file
+          "cwd": "${workspaceFolder}/back-end",
+          "outFiles": ["${workspaceFolder}/back-end/**/*.js"],
+          "console": "integratedTerminal",
+          "runtimeArgs": ["--inspect=9229"]
+      },
+      {
+          "name": "Debug Python",
+          "type": "debugpy",
+          "request": "launch",
+          "program": "${workspaceFolder}/embedding-service/main.py",  // Change this to your Python main file
+          "console": "integratedTerminal"
+      }
   ]
 }
