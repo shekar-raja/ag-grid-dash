@@ -45,13 +45,16 @@ embeddings.functions = {
                 const textData = documents.map((doc) => ({
                     id: doc.id,
                     text: `
-                        Lead ${doc.leadName || "N/A"} is currently in the ${doc.status || "N/A"} stage with a ${doc.priority || "N/A"} priority.
-                        Last interaction was through ${doc.lastInteraction || "N/A"}, and the next follow-up is scheduled on ${doc.followUp || "N/A"}.
-                        Source of lead: ${doc.source || "N/A"}.
-                        Additional details: ${doc.comments || "No comments"}.
-                        Contact: ${doc.email || "N/A"}, ${doc.phone || "N/A"}.
-                        Lead ID: ${doc.leadId || "N/A"}.
-                        `.replace(/\s+/g, ' ').trim()
+                        Lead Name: ${doc.leadName || "N/A"}.
+                        Status Stage: ${doc.status || "N/A"} - Indicates lead's current progress.
+                        Priority Level: ${doc.priority || "N/A"}.
+                        Last Contact Method: ${doc.lastInteraction || "N/A"}.
+                        Next Follow-Up Scheduled: ${doc.followUp || "N/A"}.
+                        Lead Source: ${doc.source || "N/A"} - Origin of engagement.
+                        Conversation Notes: ${doc.comments || "No comments provided"}.
+                        Contact Info: Email - ${doc.email || "N/A"}, Phone - ${doc.phone || "N/A"}.
+                        Lead Identifier: ${doc.leadId || "N/A"}.
+                    `.replace(/\s+/g, ' ').trim()
                   }));
     
                 logger.info(`Sending ${textData.length} records for embedding generation...`);
